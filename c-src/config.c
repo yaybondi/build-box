@@ -1,0 +1,196 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <getopt.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <string.h>
+#include <errno.h>
+#include "bbox-do.h"
+
+bbox_conf_t *bbox_config_new()
+{
+    size_t i, n = 0, s = 0;
+    char *lineptr = NULL;
+    FILE *fp = fopen("/etc/passwd", "re");
+
+    if(!fp) {
+        bbox_perror("config", "error fetching user info: %s.\n",
+                strerror(errno));
+        return NULL;
+    }
+
+    uid_t ruid = getuid();
+    bbox_conf_t *conf = calloc(sizeof(bbox_conf_t), 1);
+
+    if(!conf) {
+        bbox_perror("config", "out of memory?", strerror(errno));
+        return NULL;
+    }
+
+    while(1)
+    {
+        ssize_t count = getline(&lineptr, &n, fp);
+
+        if(count == -1) {
+            free(lineptr);
+
+            if(!feof(fp)) {
+                bbox_perror("config", "error reading user info: %s.\n",
+                        strerror(errno));
+                fclose(fp);
+                free(conf);
+                return NULL;
+            }
+
+            fclose(fp);
+            break;
+        }
+
+        char *start = NULL;
+        char *end   = NULL;
+
+        for(i=0, start=lineptr; (end=index(start, ':')); start=end+1, i++) {
+            *end = '\0';
+
+            if(i == 2) {
+                uid_t pwuid = strtol(start, NULL, 10);
+                if(ruid != pwuid)
+                    break;
+            }
+
+            if(i == 5) {
+                conf->home_dir = strdup(start);
+                bbox_path_join(&(conf->target_dir), start, ".bolt/targets", &s);
+            }
+        }
+    }
+
+    if(!conf->home_dir)
+        conf->home_dir = strdup("/");
+    if(!conf->target_dir)
+        conf->target_dir = strdup(".");
+    conf->do_mount = 0;
+
+    return conf;
+}
+
+int bbox_config_set_target_dir(bbox_conf_t *conf, const char *path)
+{
+    if(conf->target_dir)
+        free(conf->target_dir);
+    conf->target_dir = strdup(path);
+
+    if(!conf->target_dir) {
+        bbox_perror("config", "out of memory? %s.\n", strerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
+
+char *bbox_config_get_target_dir(const bbox_conf_t *conf)
+{
+    return conf->target_dir;
+}
+
+int bbox_config_set_home_dir(bbox_conf_t *conf, const char *path)
+{
+    if(conf->home_dir)
+        free(conf->home_dir);
+    conf->home_dir = strdup(path);
+
+    if(!conf->home_dir) {
+        bbox_perror("config", "out of memory? %s.\n", strerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
+
+char *bbox_config_get_home_dir(const bbox_conf_t *conf)
+{
+    return conf->home_dir;
+}
+
+void bbox_config_clear_mount(bbox_conf_t *c)
+{
+    c->do_mount = 0;
+}
+
+void bbox_config_set_mount_all(bbox_conf_t *c)
+{
+    c->do_mount = BBOX_DO_MOUNT_ALL;
+}
+
+void bbox_config_set_mount_dev(bbox_conf_t *c)
+{
+    c->do_mount |= BBOX_DO_MOUNT_DEV;
+}
+
+void bbox_config_set_mount_proc(bbox_conf_t *c)
+{
+    c->do_mount |= BBOX_DO_MOUNT_PROC;
+}
+
+void bbox_config_set_mount_sys(bbox_conf_t *c)
+{
+    c->do_mount |= BBOX_DO_MOUNT_SYS;
+}
+
+void bbox_config_set_mount_home(bbox_conf_t *c)
+{
+    c->do_mount |= BBOX_DO_MOUNT_HOME;
+}
+
+void bbox_config_unset_mount_dev(bbox_conf_t *c)
+{
+    c->do_mount &= ~BBOX_DO_MOUNT_DEV;
+}
+
+void bbox_config_unset_mount_proc(bbox_conf_t *c)
+{
+    c->do_mount &= ~BBOX_DO_MOUNT_PROC;
+}
+
+void bbox_config_unset_mount_sys(bbox_conf_t *c)
+{
+    c->do_mount &= ~BBOX_DO_MOUNT_SYS;
+}
+
+void bbox_config_unset_mount_home(bbox_conf_t *c)
+{
+    c->do_mount &= ~BBOX_DO_MOUNT_HOME;
+}
+
+unsigned int bbox_config_get_mount_any(const bbox_conf_t *c)
+{
+    return c->do_mount;
+}
+
+unsigned int bbox_config_get_mount_dev(const bbox_conf_t *c)
+{
+    return (c->do_mount & BBOX_DO_MOUNT_DEV);
+}
+
+unsigned int bbox_config_get_mount_proc(const bbox_conf_t *c)
+{
+    return (c->do_mount & BBOX_DO_MOUNT_PROC);
+}
+
+unsigned int bbox_config_get_mount_sys(const bbox_conf_t *c)
+{
+    return (c->do_mount & BBOX_DO_MOUNT_SYS);
+}
+
+unsigned int bbox_config_get_mount_home(const bbox_conf_t *c)
+{
+    return (c->do_mount & BBOX_DO_MOUNT_HOME);
+}
+
+void bbox_config_free(bbox_conf_t *conf)
+{
+    if(conf->target_dir)
+        free(conf->target_dir);
+    free(conf);
+}
+
