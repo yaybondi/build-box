@@ -18,7 +18,7 @@ setup(
     packages=['com.nonterra.buildbox'],
     package_dir={'': 'lib'},
     data_files=[
-        ('/usr/sbin', ['bin/bbox', 'bin/bbox-do']),
+        ('/usr/bin', ['bin/bbox', 'bin/bbox-do']),
     ],
     platforms=['Linux'],
 
