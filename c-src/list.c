@@ -95,7 +95,7 @@ int bbox_list_getopt(bbox_conf_t *conf, int argc, char * const argv[])
     return optind;
 }
 
-int bbox_list_targets(const bbox_conf_t *conf,  const char *target_dir)
+int bbox_list_targets(const bbox_conf_t *conf)
 {
     static char *shells[] = {"/tools/bin/sh", "/usr/bin/sh", NULL};
 
@@ -107,6 +107,8 @@ int bbox_list_targets(const bbox_conf_t *conf,  const char *target_dir)
     char *buf2 = NULL;
     size_t buf2_len = 0;
     char *sh = NULL;
+
+    const char *target_dir = bbox_config_get_target_dir(conf);
 
     if(lstat(target_dir, &st) < 0) {
         bbox_perror("list", "could not stat '%s': %s.\n", target_dir,
@@ -126,8 +128,11 @@ int bbox_list_targets(const bbox_conf_t *conf,  const char *target_dir)
     }
 
     while((ep = readdir(dp)) != NULL) {
-        /* check that entry is a directory. */
+        if(!strcmp(".", ep->d_name) || !strcmp("..", ep->d_name))
+            continue;
+
         bbox_path_join(&buf1, target_dir, ep->d_name, &buf1_len);
+
         if(lstat(buf1, &st) < 0)
             continue;
         if(S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode))
@@ -184,7 +189,7 @@ int bbox_list(int argc, char * const argv[])
         }
     }
 
-    if(bbox_list_targets(conf, bbox_config_get_target_dir(conf)) < 0)
+    if(bbox_list_targets(conf) < 0)
         rval = BBOX_ERR_RUNTIME;
 
     bbox_config_free(conf);
