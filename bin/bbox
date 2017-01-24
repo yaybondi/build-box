@@ -53,12 +53,11 @@ def print_usage():
         "  mount    Mount /home and special file systems (dev, proc, sys).   \n"
         "  umount   Unmount /home and special file systems.                  \n"
         "  run      Execute a command chrooted inside a target.              \n"
-        "                                                                    \n"
         % BBOX_VERSION
     )
 #end function
 
-def bbox_do(command, *args):
+def bbox_do(*args):
     sys.stdout.flush()
     sys.stderr.flush()
 
@@ -72,7 +71,7 @@ def bbox_do(command, *args):
 
 if __name__ == "__main__":
     try:
-        if len(sys.argv) != 2:
+        if len(sys.argv) < 2:
             print_usage()
             sys.exit(BBOX_ERR_INVOCATION)
         #end if
