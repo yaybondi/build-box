@@ -1,0 +1,30 @@
+#!/usr/bin/make -f
+# See debhelper(7) (uncomment to enable)
+# output every command that modifies files on the build system.
+export DH_VERBOSE = 1
+
+# see FEATURE AREAS in dpkg-buildflags(1)
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_auto_configure:
+	autoreconf -i
+	mkdir -p .build
+	(cd .build && ../configure --prefix=/usr --exec-prefix=/usr/sbin)
+
+override_dh_auto_build:
+	(cd .build && make)
+	dh_auto_build
+
+override_dh_auto_install:
+	(cd .build && cp c-src/bbox-do ../bin)
+	dh_auto_install
+
+override_dh_clean:
+	dh_auto_clean
+	rm -f bin/bbox-do Makefile.in aclocal.m4 c-src/Makefile.in compile \
+		config.h.in configure depcomp install-sh missing
+	rm -fr .build lib/build_box_utils.egg-info
+	dh_clean

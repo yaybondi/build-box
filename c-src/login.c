@@ -160,7 +160,7 @@ int bbox_login_chroot(char *sys_root, char *home_dir, uid_t uid)
     }
 
     if(home_dir)
-        chdir(home_dir);
+        if(chdir(home_dir) == -1);
 
     execlp(sh, sh, "-l", (char*) NULL);
     bbox_perror("login", "failed to invoke shell: %s.\n", strerror(errno));

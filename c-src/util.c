@@ -105,7 +105,11 @@ int bbox_popen(char **out_buf, size_t *out_buf_size, const char *cmd,
         dup2(pipefd[1], STDERR_FILENO);
         close(pipefd[1]);
 
-        setuid(0);
+        if(setuid(0) == -1) {
+            bbox_perror("popen", "failed to setuid(0): %s.\n",
+                    strerror(errno));
+            _exit(BBOX_ERR_RUNTIME);
+        }
         execvp(cmd, argv);
 
         /* if we make it here exec failed. */

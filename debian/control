@@ -1,0 +1,22 @@
+Source: build-box-utils
+Section: devel
+Priority: optional
+Maintainer: Tobias Koch <tobias@debian.office.nonterra.com>
+Build-Depends: debhelper (>= 9), dh-python, python3-all, python3-setuptools
+Standards-Version: 3.9.8
+
+Package: build-box-utils
+Architecture: any
+Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends},
+    qemu-user-static,
+    mount
+Description: utilities for managing Bolt OS build roots
+ Build Box NG is a collection of tools for bootstrapping and working with Bolt
+ OS cross-compilation environments. It allows you to log into target root file
+ systems and cross-compile software packages directly without having to worry
+ about the usual intricacies of cross-compliation.
+ .
+ This is achieved through a trick by which parts of the system are emulated
+ with Qemu, while other parts, such as the compiler and tools (GCC, Make, Perl,
+ Python, Tcl, ...), run at native speed.
+
