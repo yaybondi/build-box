@@ -19,7 +19,7 @@ override_dh_auto_build:
 	dh_auto_build
 
 override_dh_auto_install:
-	(cd .build && cp c-src/bbox-do ../bin)
+	(cd .build && install -m 0755 c-src/bbox-do ../bin)
 	dh_auto_install
 
 override_dh_clean:
