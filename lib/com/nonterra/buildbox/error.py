@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2016 Nonterra Software Solutions
+# Copyright (c) 2017 Nonterra Software Solutions
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
