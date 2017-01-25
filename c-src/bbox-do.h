@@ -13,6 +13,8 @@
 #define BBOX_DO_MOUNT_HOME 8
 #define BBOX_DO_MOUNT_ALL  0x0F
 
+#include <sys/types.h>
+
 typedef struct {
     char *target_dir;
     char *home_dir;
@@ -46,8 +48,8 @@ void bbox_config_free(bbox_conf_t *conf);
 void bbox_path_join(char **buf_ptr, const char *base, const char *sub,
         size_t *n_ptr);
 void bbox_perror(char *lead, char *msg, ...);
-int bbox_popen(char **out_buf, size_t *out_buf_size, const char *cmd,
-        char * const argv[]);
+int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
+        char **out_buf, size_t *out_buf_size);
 
 /* Mounting */
 

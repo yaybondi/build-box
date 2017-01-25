@@ -159,7 +159,9 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
     char * const argv[] = {"umount", buf, NULL};
     int rval = 0;
 
-    if(bbox_popen(&out_buf, &out_buf_len, "umount", argv) != 0) {
+    if(bbox_runas_fetch_output(0, "umount", argv, &out_buf,
+                &out_buf_len) != 0)
+    {
         if(out_buf) {
             bbox_perror("umount", "failed to unmount %s: \"%s\".\n",
                     mount_point, out_buf);
