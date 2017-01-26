@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     if(strcmp(command, "run") == 0)
         return bbox_run(argc-1, &argv[1]);
 
-    bbox_perror("main", "bbox-do: unknown command '%s'.\n", command);
+    bbox_perror("main", "unknown command '%s'.\n", command);
     return BBOX_ERR_INVOCATION;
 }
 

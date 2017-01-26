@@ -38,7 +38,7 @@ bbox_conf_t *bbox_config_new()
     FILE *fp = fopen("/etc/passwd", "re");
 
     if(!fp) {
-        bbox_perror("config", "error fetching user info: %s.\n",
+        bbox_perror("bbox_config_new", "error fetching user info: %s.\n",
                 strerror(errno));
         return NULL;
     }
@@ -47,7 +47,7 @@ bbox_conf_t *bbox_config_new()
     bbox_conf_t *conf = calloc(sizeof(bbox_conf_t), 1);
 
     if(!conf) {
-        bbox_perror("config", "out of memory?", strerror(errno));
+        bbox_perror("bbox_config_new", "out of memory?", strerror(errno));
         return NULL;
     }
 
@@ -59,7 +59,7 @@ bbox_conf_t *bbox_config_new()
             free(lineptr);
 
             if(!feof(fp)) {
-                bbox_perror("config", "error reading user info: %s.\n",
+                bbox_perror("bbox_config_new", "error reading user info: %s.\n",
                         strerror(errno));
                 fclose(fp);
                 free(conf);
@@ -105,7 +105,7 @@ int bbox_config_set_target_dir(bbox_conf_t *conf, const char *path)
     conf->target_dir = strdup(path);
 
     if(!conf->target_dir) {
-        bbox_perror("config", "out of memory? %s.\n", strerror(errno));
+        bbox_perror("bbox_config_new", "out of memory? %s.\n", strerror(errno));
         return -1;
     }
 
@@ -124,7 +124,7 @@ int bbox_config_set_home_dir(bbox_conf_t *conf, const char *path)
     conf->home_dir = strdup(path);
 
     if(!conf->home_dir) {
-        bbox_perror("config", "out of memory? %s.\n", strerror(errno));
+        bbox_perror("bbox_config_new", "out of memory? %s.\n", strerror(errno));
         return -1;
     }
 

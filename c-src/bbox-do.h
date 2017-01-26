@@ -45,9 +45,14 @@ void bbox_config_free(bbox_conf_t *conf);
 
 /* Utilities */
 
+void bbox_sep_join(char **buf_ptr, const char *base, const char *sep,
+        const char *sub, size_t *n_ptr);
 void bbox_path_join(char **buf_ptr, const char *base, const char *sub,
         size_t *n_ptr);
 void bbox_perror(char *lead, char *msg, ...);
+int bbox_login_sh_chrooted(char *sys_root, char *home_dir, uid_t uid);
+int bbox_runas_sh_chrooted(const char *sys_root, const char *home_dir,
+        uid_t uid, int argc, char * const argv[]);
 int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
         char **out_buf, size_t *out_buf_size);
 

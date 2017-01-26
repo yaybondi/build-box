@@ -80,10 +80,10 @@ int bbox_list_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                     return -2;
                 break;
             case '?':
-                bbox_perror("login", "unknown option '%s'.\n", argv[optind-1]);
+                bbox_perror("list", "unknown option '%s'.\n", argv[optind-1]);
                 return -2;
             case ':':
-                bbox_perror("login", "option '%s' needs an argument.\n",
+                bbox_perror("list", "option '%s' needs an argument.\n",
                         argv[optind-1]);
                 return -2;
             default:

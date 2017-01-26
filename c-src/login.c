@@ -103,70 +103,6 @@ int bbox_login_getopt(bbox_conf_t *conf, int argc, char * const argv[])
     return optind;
 }
 
-int bbox_login_chroot(char *sys_root, char *home_dir, uid_t uid)
-{
-    static char *shells[] = {"/tools/bin/sh", "/usr/bin/sh", NULL};
-
-    char *sh = NULL;
-    char *buf = NULL;
-    size_t buf_len = 0;
-    struct stat st;
-
-    if(lstat(sys_root, &st) == -1) {
-        bbox_perror("login", "failed to stat '%s': %s.\n", sys_root,
-                strerror(errno));
-        return BBOX_ERR_RUNTIME;
-    }
-    if(S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode)) {
-        bbox_perror("login", "'%s' is not a directory.\n", sys_root);
-        return BBOX_ERR_RUNTIME;
-    }
-    if(st.st_uid != uid) {
-        bbox_perror("login", "directory '%s' is not owned by user.\n",
-                sys_root);
-        return BBOX_ERR_RUNTIME;
-    }
-
-    for(int i = 0; (sh = shells[i]) != NULL; i++) {
-        bbox_path_join(&buf, sys_root, sh, &buf_len);
-
-        if(lstat(buf, &st) == 0)
-            break;
-        else
-            sh = NULL;
-    }
-
-    free(buf);
-
-    if(!sh) {
-        bbox_perror("login", "could not find a shell.\n");
-        return BBOX_ERR_RUNTIME;
-    }
-
-    if(chdir(sys_root) == -1) {
-        bbox_perror("login", "chdir to system root failed: %s.\n",
-                strerror(errno));
-        return BBOX_ERR_RUNTIME;
-    }
-    if(chroot(".") == -1) {
-        bbox_perror("login", "chroot to system root failed: %s.\n",
-                strerror(errno));
-        return BBOX_ERR_RUNTIME;
-    }
-    if(setuid(uid) == -1) {
-        bbox_perror("login", "could not drop privileges: %s.\n",
-                strerror(errno));
-        return BBOX_ERR_RUNTIME;
-    }
-
-    if(home_dir)
-        if(chdir(home_dir) == -1);
-
-    execlp(sh, sh, "-l", (char*) NULL);
-    bbox_perror("login", "failed to invoke shell: %s.\n", strerror(errno));
-    return BBOX_ERR_RUNTIME;
-}
-
 int bbox_login(int argc, char * const argv[])
 {
     char *buf = NULL;
@@ -208,10 +144,15 @@ int bbox_login(int argc, char * const argv[])
         }
     }
 
-    int rval = bbox_login_chroot(buf, bbox_config_get_home_dir(conf), getuid());
+    int rval = bbox_login_sh_chrooted(buf,
+            bbox_config_get_home_dir(conf), getuid());
 
     bbox_config_free(conf);
     free(buf);
-    return rval;
+
+    if(rval == -1)
+        return BBOX_ERR_RUNTIME;
+    else
+        return rval;
 }
 
