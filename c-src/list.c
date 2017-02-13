@@ -110,7 +110,7 @@ int bbox_list_targets(const bbox_conf_t *conf)
 
     const char *target_dir = bbox_config_get_target_dir(conf);
 
-    if(lstat(target_dir, &st) < 0) {
+    if(lstat(target_dir, &st) == -1) {
         bbox_perror("list", "could not stat '%s': %s.\n", target_dir,
                 strerror(errno));
         return -1;
@@ -133,7 +133,7 @@ int bbox_list_targets(const bbox_conf_t *conf)
 
         bbox_path_join(&buf1, target_dir, ep->d_name, &buf1_len);
 
-        if(lstat(buf1, &st) < 0)
+        if(lstat(buf1, &st) == -1)
             continue;
         if(S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode))
             continue;
