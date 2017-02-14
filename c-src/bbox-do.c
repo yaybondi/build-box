@@ -40,7 +40,7 @@ void bbox_main_usage()
         "  login    Chroot into a target.                                    \n"
         "  mount    Mount /home and special file systems (dev, proc, sys).   \n"
         "  umount   Unmount /home and special file systems.                  \n"
-        "  run      Execute a command inside a target.                       \n"
+        "  run      Execute a command chrooted inside a target.              \n"
         "                                                                    \n",
         BBOX_VERSION
     );
