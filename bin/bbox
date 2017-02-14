@@ -82,6 +82,8 @@ if __name__ == "__main__":
             bbox_do(command, *sys.argv[1:])
         elif command == "create":
             pass
+        elif command in ["--help", "-h"]:
+            print_usage()
         else:
             sys.stderr.write("bbox: unknown command '%s'.\n" % command)
             sys.exit(BBOX_ERR_INVOCATION)
