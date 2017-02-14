@@ -50,6 +50,9 @@ void bbox_login_usage()
         " -n,--no-mount        Do not bind mount /home and special filesystems. \n"
         "                      This does *not* unmount previously mounted       \n"
         "                      file systems. Use 'bbox-do umount' for that.     \n"
+        "                                                                       \n"
+        " --no-file-copy       Don't copy /etc/passwd, group and resolv.conf    \n"
+        "                      from host.                                       \n"
         "                                                                       \n",
         BBOX_VERSION
     );
@@ -64,10 +67,12 @@ int bbox_login_getopt(bbox_conf_t *conf, int argc, char * const argv[])
         {"help",     no_argument,       0, 'h'},
         {"targets",  required_argument, 0, 't'},
         {"no-mount", no_argument,       0, 'n'},
+        {"no-file-copy", no_argument,   0, -1 },
         { 0,         0,                 0,  0 }
     };
 
     bbox_config_set_mount_all(conf);
+    bbox_config_enable_file_updates(conf);
     optind = 1;
 
     while(1) {
@@ -86,6 +91,9 @@ int bbox_login_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                 break;
             case 'n':
                 bbox_config_clear_mount(conf);
+                break;
+            case -1:
+                bbox_config_disable_file_updates(conf);
                 break;
             case '?':
                 bbox_perror("login", "unknown option '%s'.\n", argv[optind-1]);
@@ -143,6 +151,9 @@ int bbox_login(int argc, char * const argv[])
             return BBOX_ERR_RUNTIME;
         }
     }
+
+    if(bbox_config_do_file_updates(conf))
+        bbox_update_chroot_dynamic_config(buf);
 
     int rval = bbox_login_sh_chrooted(buf,
             bbox_config_get_home_dir(conf), getuid());

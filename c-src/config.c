@@ -94,6 +94,7 @@ bbox_conf_t *bbox_config_new()
     if(!conf->target_dir)
         conf->target_dir = strdup(".");
     conf->do_mount = 0;
+    conf->do_file_updates = 0;
 
     return conf;
 }
@@ -209,6 +210,21 @@ unsigned int bbox_config_get_mount_sys(const bbox_conf_t *c)
 unsigned int bbox_config_get_mount_home(const bbox_conf_t *c)
 {
     return (c->do_mount & BBOX_DO_MOUNT_HOME);
+}
+
+void bbox_config_disable_file_updates(bbox_conf_t *c)
+{
+    c->do_file_updates = 0;
+}
+
+void bbox_config_enable_file_updates(bbox_conf_t *c)
+{
+    c->do_file_updates = 1;
+}
+
+unsigned int bbox_config_do_file_updates(const bbox_conf_t *c)
+{
+    return (c->do_file_updates);
 }
 
 void bbox_config_free(bbox_conf_t *conf)

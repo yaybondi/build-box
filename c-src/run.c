@@ -148,6 +148,9 @@ int bbox_run(int argc, char * const argv[])
         }
     }
 
+    if(bbox_config_do_file_updates(conf))
+        bbox_update_chroot_dynamic_config(buf);
+
     int rval = bbox_runas_sh_chrooted(buf, home_dir, getuid(),
             argc-non_optind, &argv[non_optind]);
 

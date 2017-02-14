@@ -19,6 +19,7 @@ typedef struct {
     char *target_dir;
     char *home_dir;
     unsigned int do_mount;
+    unsigned int do_file_updates;
 } bbox_conf_t;
 
 bbox_conf_t *bbox_config_new();
@@ -41,6 +42,9 @@ unsigned int bbox_config_get_mount_dev(const bbox_conf_t *c);
 unsigned int bbox_config_get_mount_proc(const bbox_conf_t *c);
 unsigned int bbox_config_get_mount_sys(const bbox_conf_t *c);
 unsigned int bbox_config_get_mount_home(const bbox_conf_t *c);
+void bbox_config_disable_file_updates(bbox_conf_t *c);
+void bbox_config_enable_file_updates(bbox_conf_t *c);
+unsigned int bbox_config_do_file_updates(const bbox_conf_t *c);
 void bbox_config_free(bbox_conf_t *conf);
 
 /* Utilities */
@@ -55,6 +59,7 @@ int bbox_runas_sh_chrooted(const char *sys_root, const char *home_dir,
         uid_t uid, int argc, char * const argv[]);
 int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
         char **out_buf, size_t *out_buf_size);
+void bbox_update_chroot_dynamic_config(const char *sys_root);
 
 /* Mounting */
 

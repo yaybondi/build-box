@@ -27,11 +27,129 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 #include <stdarg.h>
 #include <string.h>
+#include <libgen.h>
 #include <errno.h>
 #include "bbox-do.h"
+
+#define BBOX_COPY_BUF_SIZE 4096
+
+int bbox_copy_file(const char *src, const char *dst)
+{
+    struct stat src_st, dst_st;
+    char buf[BBOX_COPY_BUF_SIZE];
+    char *dst_tmp1 = NULL;
+    char *dst_tmp2 = NULL;
+    char *filename = NULL;
+    char *pathname = NULL;
+    char *tmp_dst  = NULL;
+    size_t pathname_len = 0;
+    size_t filename_len = 0;
+    int in_fd = -1, out_fd = -1, rval = -1;
+    int num_bytes_read, num_bytes_written;
+
+    if(lstat(src, &src_st) == -1) {
+        bbox_perror("bbox_copy_file", "could not stat '%s'.\n", src);
+        goto cleanup_and_exit;
+    }
+
+    if(lstat(dst, &dst_st) ==  0) {
+        if(S_ISLNK(dst_st.st_mode) || !S_ISREG(dst_st.st_mode)) {
+            bbox_perror("bbox_copy_file",
+                    "destination is not a regular file.\n");
+            goto cleanup_and_exit;
+        }
+    }
+
+    dst_tmp1 = strdup(dst);
+    if(dst_tmp1 == NULL) {
+        bbox_perror("bbox_copy_file", "out of memory!\n");
+        abort();
+    }
+
+    dst_tmp2 = strdup(dst);
+    if(dst_tmp2 == NULL) {
+        bbox_perror("bbox_copy_file", "out of memory!\n");
+        abort();
+    }
+
+    filename     = basename(dst_tmp1);
+    filename_len = strlen(filename);
+    pathname     = dirname(dst_tmp2);
+    pathname_len = strlen(pathname);
+    tmp_dst      = malloc(pathname_len + filename_len + 3);
+
+    if(tmp_dst == NULL) {
+        bbox_perror("bbox_copy_file", "out of memory!\n");
+        abort();
+    }
+
+    strncpy(tmp_dst, pathname, pathname_len);
+    tmp_dst[pathname_len + 0] = '/';
+    tmp_dst[pathname_len + 1] = '.';
+    strncpy(tmp_dst + pathname_len + 2, filename, filename_len);
+    tmp_dst[pathname_len + 2 + filename_len] = '\0';
+
+    if((in_fd = open(src, O_RDONLY)) == -1) {
+        bbox_perror("bbox_copy_file", "failed to open '%s' for reading: %s\n",
+                src, strerror(errno));
+        goto cleanup_and_exit;
+    }
+
+    if((out_fd = creat(dst, src_st.st_mode)) == -1) {
+        bbox_perror("bbox_copy_file", "failed to open '%s' for writing: %s\n",
+                dst, strerror(errno));
+        goto cleanup_and_exit;
+    }
+
+    while(1)
+    {
+        num_bytes_read = read(in_fd, (void*) buf, BBOX_COPY_BUF_SIZE);
+
+        if(!num_bytes_read)
+            break;
+
+        if(num_bytes_read == -1) {
+            if(errno != EINTR) {
+                goto cleanup_and_exit;
+            } else {
+                continue;
+            }
+        }
+
+        while(num_bytes_read) {
+            num_bytes_written = write(out_fd, buf, num_bytes_read);
+
+            if(num_bytes_written == -1) {
+                if(errno != EINTR) {
+                    goto cleanup_and_exit;
+                } else {
+                    continue;
+                }
+            }
+
+            num_bytes_read -= num_bytes_written;
+        }
+    }
+
+    rval = 0;
+
+cleanup_and_exit:
+
+    if(in_fd != -1)
+        close(in_fd);
+    if(out_fd != -1)
+        close(out_fd);
+
+    free(dst_tmp1);
+    free(dst_tmp2);
+    free(tmp_dst);
+
+    return rval;
+}
 
 void bbox_sep_join(char **buf_ptr, const char *base, const char *sep,
         const char *sub, size_t *n_ptr)
@@ -369,5 +487,42 @@ int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
     }
 
     return WEXITSTATUS(child_status);
+}
+
+void bbox_update_chroot_dynamic_config(const char *sys_root)
+{
+    char *file;
+    char *buf = NULL;
+    size_t buf_len = 0;
+    struct stat st;
+
+    char *file_list[] = {
+        "/etc/passwd",
+        "/etc/group",
+        "/etc/resolv.conf",
+        NULL
+    };
+
+    if(seteuid(getuid()) == -1) {
+        bbox_perror("bbox_update_chroot_dynamic_config",
+                "cannot drop privileges.\n");
+        return;
+    }
+
+    for(int i = 0; file_list[i] != NULL; i++) {
+        file = file_list[i];
+
+        if(lstat(file, &st) == -1)
+            continue;
+
+        bbox_path_join(&buf, sys_root, file, &buf_len);
+        bbox_copy_file(file, buf);
+    }
+
+    if(seteuid(0) == -1) {
+        bbox_perror("bbox_update_chroot_dynamic_config",
+                "cannot restore root privileges.\n");
+        return;
+    }
 }
 
