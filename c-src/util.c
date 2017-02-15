@@ -46,6 +46,7 @@ int bbox_copy_file(const char *src, const char *dst)
     char *filename = NULL;
     char *pathname = NULL;
     char *tmp_dst  = NULL;
+    char *ptr      = NULL;
     size_t pathname_len = 0;
     size_t filename_len = 0;
     int in_fd = -1, out_fd = -1, rval = -1;
@@ -120,8 +121,10 @@ int bbox_copy_file(const char *src, const char *dst)
             }
         }
 
+        ptr = buf;
+
         while(num_bytes_read) {
-            num_bytes_written = write(out_fd, buf, num_bytes_read);
+            num_bytes_written = write(out_fd, ptr, num_bytes_read);
 
             if(num_bytes_written == -1) {
                 if(errno != EINTR) {
@@ -132,6 +135,7 @@ int bbox_copy_file(const char *src, const char *dst)
             }
 
             num_bytes_read -= num_bytes_written;
+            ptr += num_bytes_written;
         }
     }
 
