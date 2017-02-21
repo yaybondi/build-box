@@ -60,6 +60,7 @@ int bbox_runas_sh_chrooted(const char *sys_root, const char *home_dir,
 int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
         char **out_buf, size_t *out_buf_size);
 void bbox_update_chroot_dynamic_config(const char *sys_root);
+void bbox_sanitize_environment();
 
 /* Mounting */
 

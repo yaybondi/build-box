@@ -35,7 +35,56 @@
 #include <errno.h>
 #include "bbox-do.h"
 
+#ifndef _GNU_SOURCE
+extern char **environ;
+#endif
+
 #define BBOX_COPY_BUF_SIZE 4096
+
+void bbox_sanitize_environment()
+{
+    char *start, *end, *name;
+
+    for(int i = 0; (start = environ[i]) != NULL; i++)
+    {
+        if(!strncmp(start, "BOLT_", 5))
+            continue;
+        if(!strncmp(start, "DISPLAY=", 8))
+            continue;
+        if(!strncmp(start, "SSH_CONNECTION=", 15))
+            continue;
+        if(!strncmp(start, "SSH_CLIENT=", 11))
+            continue;
+        if(!strncmp(start, "SSH_TTY=", 8))
+            continue;
+        if(!strncmp(start, "USER=", 5))
+            continue;
+        if(!strncmp(start, "TERM=", 5))
+            continue;
+        if(!strncmp(start, "HOME=", 5))
+            continue;
+        if(!strncmp(start, "CFLAGS=", 7))
+            continue;
+        if(!strncmp(start, "CPPFLAGS=", 9))
+            continue;
+        if(!strncmp(start, "LDFLAGS=", 8))
+            continue;
+
+        if((end = strchr(start, '=')) == NULL)
+            continue;
+
+        name = strndup(start, end - start);
+
+        if(!name) {
+            bbox_perror("bbox_sanitize_environment", "out of memory!\n");
+            abort();
+        }
+
+        unsetenv(name);
+        free(name);
+        i = 0;
+    }
+}
 
 int bbox_copy_file(const char *src, const char *dst)
 {
@@ -406,7 +455,7 @@ int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
     int bytes_read;
     int total_read = 0;
     int req_space;
-    char buf[1024];
+    char buf[BBOX_COPY_BUF_SIZE];
 
     if(pipe(pipefd) == -1) {
         bbox_perror("bbox_runas_fetch_output",
@@ -443,7 +492,7 @@ int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
 
     close(pipefd[1]);
 
-    while((bytes_read = read(pipefd[0], buf, 1024)) > 0) {
+    while((bytes_read = read(pipefd[0], buf, BBOX_COPY_BUF_SIZE)) > 0) {
         req_space = total_read + bytes_read + 1;
 
         if(req_space > *out_buf_size) {

@@ -155,6 +155,7 @@ int bbox_login(int argc, char * const argv[])
     if(bbox_config_do_file_updates(conf))
         bbox_update_chroot_dynamic_config(buf);
 
+    bbox_sanitize_environment();
     int rval = bbox_login_sh_chrooted(buf,
             bbox_config_get_home_dir(conf), getuid());
 
