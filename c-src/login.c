@@ -67,7 +67,7 @@ int bbox_login_getopt(bbox_conf_t *conf, int argc, char * const argv[])
         {"help",     no_argument,       0, 'h'},
         {"targets",  required_argument, 0, 't'},
         {"no-mount", no_argument,       0, 'n'},
-        {"no-file-copy", no_argument,   0, -1 },
+        {"no-file-copy", no_argument,   0, '1'},
         { 0,         0,                 0,  0 }
     };
 
@@ -92,7 +92,7 @@ int bbox_login_getopt(bbox_conf_t *conf, int argc, char * const argv[])
             case 'n':
                 bbox_config_clear_mount(conf);
                 break;
-            case -1:
+            case '1':
                 bbox_config_disable_file_updates(conf);
                 break;
             case '?':
