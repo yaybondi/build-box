@@ -65,6 +65,8 @@ void bbox_sanitize_environment()
             continue;
         if(!strncmp(start, "CFLAGS=", 7))
             continue;
+        if(!strncmp(start, "CXXFLAGS=", 9))
+            continue;
         if(!strncmp(start, "CPPFLAGS=", 9))
             continue;
         if(!strncmp(start, "LDFLAGS=", 8))
