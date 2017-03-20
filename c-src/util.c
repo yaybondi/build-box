@@ -571,6 +571,7 @@ void bbox_update_chroot_dynamic_config(const char *sys_root)
         "/etc/passwd",
         "/etc/group",
         "/etc/resolv.conf",
+        "/etc/hosts",
         NULL
     };
 
