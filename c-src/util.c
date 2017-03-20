@@ -213,21 +213,29 @@ void bbox_sep_join(char **buf_ptr, const char *base, const char *sep,
     size_t sub_len      = strlen(sub);
     size_t sep_len      = strlen(sep);
     size_t req_buf_size = base_len + sep_len + sub_len + 1;
+    int base_is_buffer  = 0;
+
+    if(base == *buf_ptr)
+        base_is_buffer = 1;
 
     if(req_buf_size > *n_ptr)
     {
         *buf_ptr = realloc(*buf_ptr, req_buf_size);
+
         if(!*buf_ptr) {
             bbox_perror("bbox_sep_join", "out of memory? %s\n",
                     strerror(errno));
             abort();
         }
 
+        if(base_is_buffer)
+            base = *buf_ptr;
+
         *n_ptr = req_buf_size;
     }
 
-    memmove((void*) *buf_ptr, base, base_len);
-    memmove((void*) *buf_ptr + base_len, sep, sep_len);
+    memmove((void*) *buf_ptr, base, base_len + 1);
+    memmove((void*) *buf_ptr + base_len, sep, sep_len + 1);
     memmove((void*) *buf_ptr + base_len + sep_len, sub, sub_len + 1);
 }
 
@@ -237,6 +245,10 @@ void bbox_path_join(char **buf_ptr, const char *base, const char *sub,
     size_t base_len = strlen(base);
     size_t sub_len  = strlen(sub);
     size_t req_buf_size = base_len + sub_len + 1;
+    int base_is_buffer = 0;
+
+    if(base == *buf_ptr)
+        base_is_buffer = 1;
 
     if(base[base_len-1] != '/')
         req_buf_size++;
@@ -244,16 +256,20 @@ void bbox_path_join(char **buf_ptr, const char *base, const char *sub,
     if(req_buf_size > *n_ptr)
     {
         *buf_ptr = realloc(*buf_ptr, req_buf_size);
+
         if(!*buf_ptr) {
             bbox_perror("bbox_path_join", "out of memory? %s\n",
                     strerror(errno));
             abort();
         }
 
+        if(base_is_buffer)
+            base = *buf_ptr;
+
         *n_ptr = req_buf_size;
     }
 
-    memmove((void*) *buf_ptr, base, base_len);
+    memmove((void*) *buf_ptr, base, base_len + 1);
 
     if(base[base_len-1] != '/')
         (*buf_ptr)[base_len++] = '/';
