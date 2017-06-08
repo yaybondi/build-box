@@ -13,9 +13,9 @@ setup(
     version='1.0.0',
     url='https://github.com/tobijk/build-box-utils',
     author='Tobias Koch',
-    author_email='tobias.koch@nonterra.com',
+    author_email='tobias.koch@gmail.com',
     license='MIT',
-    packages=['com.nonterra.buildbox'],
+    packages=['org.boltlinux.buildbox'],
     package_dir={'': 'lib'},
     data_files=[
         ('/usr/bin', ['bin/bbox', 'bin/bbox-do']),

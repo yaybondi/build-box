@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Tobias Koch <tobias.koch@nonterra.com>
+ * Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@ void bbox_umount_usage()
 {
     printf(
         "Build Box NG Management Utility, Version %s                             \n"
-        "Copyright (c) 2017 Tobias Koch <tobias.koch@nonterra.com>               \n"
+        "Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>               \n"
         "                                                                        \n"
         "Usage: bbox-do umount [OPTIONS] <target>                                \n"
         "                                                                        \n"

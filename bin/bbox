@@ -3,7 +3,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2017 Tobias Koch <tobias.koch@nonterra.com>
+# Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,7 @@ INSTALL_DIR = os.path.normpath(os.path.dirname(
     os.path.realpath(sys.argv[0])) + os.sep + ".." )
 sys.path.insert(1, INSTALL_DIR + os.sep + 'lib')
 
-from com.nonterra.buildbox.error import BBoxError
+from org.boltlinux.buildbox.error import BBoxError
 
 BBOX_VERSION = "1.0.0"
 BBOX_ERR_INVOCATION = 1
@@ -41,7 +41,7 @@ BBOX_ERR_RUNTIME    = 2
 def print_usage():
     print(
         "Build Box NG Management Utility, Version %s                         \n"
-        "Copyright (c) 2017 Tobias Koch <tobias.koch@nonterra.com>           \n"
+        "Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>           \n"
         "                                                                    \n"
         "Usage: bbox <command> [ARGS]                                        \n"
         "                                                                    \n"
