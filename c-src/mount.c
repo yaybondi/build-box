@@ -221,7 +221,7 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
     char *out_buf = NULL;
     size_t out_buf_len = 0;
     char * const argv[] = 
-        {"mount", "-o", "bind", (char*const) mount_point, buf, NULL};
+        {"mount", "-o", "bind,private", (char*const) mount_point, buf, NULL};
     int rval = 0;
 
     if(bbox_runas_fetch_output(0, "mount", argv, &out_buf, &out_buf_len) != 0) {
