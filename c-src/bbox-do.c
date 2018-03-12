@@ -48,6 +48,8 @@ void bbox_main_usage()
 
 int main(int argc, char *argv[])
 {
+    bbox_lower_privileges();
+
     if(argc < 2)
     {
         bbox_main_usage();

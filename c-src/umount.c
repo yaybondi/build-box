@@ -159,6 +159,11 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
     char * const argv[] = {"umount", buf, NULL};
     int rval = 0;
 
+    if(bbox_raise_privileges() == -1) {
+        free(buf);
+        return -1;
+    }
+
     if(bbox_runas_fetch_output(0, "umount", argv, &out_buf,
                 &out_buf_len) != 0)
     {
@@ -168,6 +173,9 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
         }
         rval = -1;
     }
+
+    if(bbox_lower_privileges() == -1)
+        rval = -1;
 
     free(buf);
     free(out_buf);

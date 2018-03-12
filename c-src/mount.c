@@ -38,7 +38,7 @@ void bbox_mount_usage()
 {
     printf(
         "Build Box NG Management Utility, Version %s                             \n"
-        "Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>               \n"
+        "Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>                  \n"
         "                                                                        \n"
         "Usage: bbox-do mount [OPTIONS] <target>                                 \n"
         "                                                                        \n"
@@ -224,6 +224,11 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
         {"mount", "-o", "bind,private", (char*const) mount_point, buf, NULL};
     int rval = 0;
 
+    if(bbox_raise_privileges() == -1) {
+        free(buf);
+        return -1;
+    }
+
     if(bbox_runas_fetch_output(0, "mount", argv, &out_buf, &out_buf_len) != 0) {
         if(out_buf) {
             bbox_perror("mount", "failed to mount %s: \"%s\".\n",
@@ -231,6 +236,9 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
         }
         rval = -1;
     }
+
+    if(bbox_lower_privileges() == -1)
+        rval = -1;
 
     free(buf);
     free(out_buf);

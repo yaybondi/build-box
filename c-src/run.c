@@ -157,7 +157,7 @@ int bbox_run(int argc, char * const argv[])
         bbox_update_chroot_dynamic_config(buf);
 
     bbox_sanitize_environment();
-    int rval = bbox_runas_sh_chrooted(buf, home_dir, getuid(),
+    int rval = bbox_runas_user_chrooted(buf, home_dir,
             argc-non_optind, &argv[non_optind]);
 
     bbox_config_free(conf);

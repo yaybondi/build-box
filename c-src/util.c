@@ -291,12 +291,13 @@ void bbox_perror(char *lead, char *format, ...)
     va_end(ap);
 }
 
-int bbox_login_sh_chrooted(char *sys_root, char *home_dir, uid_t uid)
+int bbox_login_sh_chrooted(char *sys_root, char *home_dir)
 {
     static char *shells[] = {"/tools/bin/sh", "/usr/bin/sh", NULL};
 
     char *sh = NULL;
     struct stat st;
+    int uid = getuid();
 
     /* change into system folder. */
     if(chdir(sys_root) == -1) {
@@ -319,18 +320,18 @@ int bbox_login_sh_chrooted(char *sys_root, char *home_dir, uid_t uid)
         return -1;
     }
 
+    if(bbox_raise_privileges() == -1)
+        return -1;
+
     if(chroot(".") == -1) {
         bbox_perror("bbox_login_sh_chrooted",
                 "chroot to system root failed: %s.\n",
                 strerror(errno));
         return -1;
     }
-    if(setuid(uid) == -1) {
-        bbox_perror("bbox_login_sh_chrooted",
-                "could not drop privileges: %s.\n",
-                strerror(errno));
+
+    if(bbox_drop_privileges() == -1)
         return -1;
-    }
 
     if(home_dir)
         if(chdir(home_dir) == -1);
@@ -356,8 +357,8 @@ int bbox_login_sh_chrooted(char *sys_root, char *home_dir, uid_t uid)
     return -1;
 }
 
-int bbox_runas_sh_chrooted(const char *sys_root, const char *home_dir,
-        uid_t uid, int argc, char * const argv[])
+int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
+        int argc, char * const argv[])
 {
     static char *shells[] = {"/tools/bin/sh", "/usr/bin/sh", NULL};
 
@@ -367,15 +368,16 @@ int bbox_runas_sh_chrooted(const char *sys_root, const char *home_dir,
     char *buf = NULL;
     size_t buf_len = 0;
     struct stat st;
+    int uid = getuid();
 
     if(argc == 0) {
-        bbox_perror("bbox_runas_sh_chrooted",
+        bbox_perror("bbox_runas_user_chrooted",
                 "missing arguments, nothing to run.\n");
         return -1;
     }
 
     if((pid = fork()) == -1) {
-        bbox_perror("bbox_runas_sh_chrooted",
+        bbox_perror("bbox_runas_user_chrooted",
                 "failed to start subprocess: %s.\n",
                 strerror(errno));
         return -1;
@@ -386,7 +388,7 @@ int bbox_runas_sh_chrooted(const char *sys_root, const char *home_dir,
 
         /* change into system folder. */
         if(chdir(sys_root) == -1) {
-            bbox_perror("bbox_runas_sh_chrooted",
+            bbox_perror("bbox_runas_user_chrooted",
                     "could not chdir to '%s': %s.\n",
                     sys_root, strerror(errno));
             _exit(BBOX_ERR_RUNTIME);
@@ -394,33 +396,33 @@ int bbox_runas_sh_chrooted(const char *sys_root, const char *home_dir,
 
         /* do a few sanity checks before chrooting. */
         if(lstat(".", &st) == -1) {
-            bbox_perror("bbox_runas_sh_chrooted", "failed to stat '%s': %s.\n",
+            bbox_perror("bbox_runas_user_chrooted", "failed to stat '%s': %s.\n",
                     sys_root, strerror(errno));
             _exit(BBOX_ERR_RUNTIME);
         }
         if(st.st_uid != uid) {
-            bbox_perror("bbox_runas_sh_chrooted",
+            bbox_perror("bbox_runas_user_chrooted",
                     "chroot is not owned by user.\n");
             _exit(BBOX_ERR_RUNTIME);
         }
 
+        if(bbox_raise_privileges() == -1)
+            return -1;
+
         /* now do actual chroot call. */
         if(chroot(".") == -1) {
-            bbox_perror("bbox_runas_sh_chrooted",
+            bbox_perror("bbox_runas_user_chrooted",
                     "chroot to system root failed: %s.\n",
                     strerror(errno));
             _exit(BBOX_ERR_RUNTIME);
         }
 
-        /* drop privileges. */
-        if(setuid(uid) == -1) {
-            bbox_perror("bbox_runas_sh_chrooted", "failed to setuid: %s.\n",
-                    strerror(errno));
+        if(bbox_drop_privileges() == -1)
             _exit(BBOX_ERR_RUNTIME);
-        }
 
+        /* this is non-critical. */
         if(home_dir)
-            if(chdir(home_dir) == -1);
+            if(chdir(home_dir));
 
         /* search for a shell. */
         for(int i = 0; (sh = shells[i]) != NULL; i++) {
@@ -431,7 +433,7 @@ int bbox_runas_sh_chrooted(const char *sys_root, const char *home_dir,
         }
 
         if(!sh) {
-            bbox_perror("bbox_runas_sh_chrooted", "could not find a shell.\n");
+            bbox_perror("bbox_runas_user_chrooted", "could not find a shell.\n");
             return -1;
         }
 
@@ -496,11 +498,9 @@ int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
         dup2(pipefd[1], STDERR_FILENO);
         close(pipefd[1]);
 
-        if(setuid(uid) == -1) {
-            bbox_perror("bbox_runas_fetch_output",
-                    "failed to setuid: %s.\n",
-                    strerror(errno));
-            _exit(BBOX_ERR_RUNTIME);
+        if(uid == 0) {
+            if(bbox_raise_privileges() == -1)
+                _exit(BBOX_ERR_RUNTIME);
         }
         execvp(cmd, argv);
 
@@ -575,12 +575,6 @@ void bbox_update_chroot_dynamic_config(const char *sys_root)
         NULL
     };
 
-    if(seteuid(getuid()) == -1) {
-        bbox_perror("bbox_update_chroot_dynamic_config",
-                "cannot drop privileges.\n");
-        return;
-    }
-
     for(int i = 0; file_list[i] != NULL; i++) {
         file = file_list[i];
 
@@ -590,11 +584,41 @@ void bbox_update_chroot_dynamic_config(const char *sys_root)
         bbox_path_join(&buf, sys_root, file, &buf_len);
         bbox_copy_file(file, buf);
     }
+}
 
-    if(seteuid(0) == -1) {
-        bbox_perror("bbox_update_chroot_dynamic_config",
-                "cannot restore root privileges.\n");
-        return;
+int bbox_lower_privileges()
+{
+    if(seteuid(getuid()) == -1) {
+        bbox_perror("bbox_lower_privileges",
+                "failed to lower privileges: %s.\n",
+                    strerror(errno));
+        return -1;
     }
+
+    return 0;
+}
+
+int bbox_raise_privileges()
+{
+    if(setuid(0) == -1) {
+        bbox_perror("bbox_raise_privileges",
+                "failed to restore root privileges: %s.\n",
+                    strerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
+
+int bbox_drop_privileges()
+{
+    if(setuid(getuid()) == -1) {
+        bbox_perror("bbox_drop_privileges",
+                "could not drop privileges: %s.\n",
+                    strerror(errno));
+        return -1;
+    }
+
+    return 0;
 }
 

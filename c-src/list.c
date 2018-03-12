@@ -37,7 +37,7 @@ void bbox_list_usage()
 {
     printf(
         "Build Box NG Management Utility, Version %s                            \n"
-        "Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>              \n"
+        "Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>                 \n"
         "                                                                       \n"
         "Usage: bbox-do list [OPTIONS]                                          \n"
         "                                                                       \n"
@@ -164,12 +164,6 @@ int bbox_list(int argc, char * const argv[])
 {
     int non_optind;
     int rval = 0;
-
-    if(setuid(getuid()) == -1) {
-        bbox_perror("list", "could not drop privileges: %s.\n",
-                strerror(errno));
-        return BBOX_ERR_RUNTIME;
-    }
 
     bbox_conf_t *conf = bbox_config_new();
     if(!conf) {
