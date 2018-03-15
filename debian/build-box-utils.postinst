@@ -21,6 +21,7 @@ set -e
 case "$1" in
     configure)
         chmod u+s /usr/bin/bbox-do
+        addgroup --system build-box >/dev/null 2>&1 || true
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
