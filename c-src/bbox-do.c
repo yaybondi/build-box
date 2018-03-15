@@ -48,7 +48,11 @@ void bbox_main_usage()
 
 int main(int argc, char *argv[])
 {
-    bbox_lower_privileges();
+    if(bbox_lower_privileges() == -1)
+        return BBOX_ERR_RUNTIME;
+
+    if(bbox_check_user_in_group_build_box() == -1)
+        return BBOX_ERR_INVOCATION;
 
     if(argc < 2)
     {

@@ -32,6 +32,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <libgen.h>
+#include <grp.h>
 #include <errno.h>
 #include "bbox-do.h"
 
@@ -331,7 +332,7 @@ int bbox_login_sh_chrooted(char *sys_root, char *home_dir)
     }
 
     if(bbox_drop_privileges() == -1)
-        return -1;
+        _exit(BBOX_ERR_RUNTIME);
 
     if(home_dir)
         if(chdir(home_dir) == -1);
@@ -620,5 +621,98 @@ int bbox_drop_privileges()
     }
 
     return 0;
+}
+
+int bbox_check_user_in_group_build_box()
+{
+    struct group grp, *result = NULL;
+
+    int    rval   = -1;
+    char  *buf    = NULL;
+    size_t buflen = 1024;
+    gid_t *groups = NULL;
+
+    while(1) {
+        buf = realloc(buf, buflen);
+
+        if(buf == NULL) {
+            bbox_perror("bbox_check_user_in_group_build_box",
+                    "out of memory?\n");
+            goto cleanup_and_exit;
+        }
+
+        errno = 0;
+
+        int rval = getgrnam_r(BBOX_GROUP_NAME, &grp, buf, buflen, &result);
+
+        if(result)
+            break;
+
+        if(rval == 0) {
+            bbox_perror("bbox_check_user_in_group_build_box",
+                    "group '" BBOX_GROUP_NAME "' not found.\n");
+            goto cleanup_and_exit;
+        }
+
+        if(rval == ERANGE) {
+            buflen *= 2;
+            continue;
+        }
+
+        if(rval == EINTR)
+            continue;
+
+        bbox_perror("bbox_check_user_in_group_build_box",
+                "error retrieving group info: %s.\n", strerror(errno));
+        goto cleanup_and_exit;
+    }
+
+    gid_t gid = grp.gr_gid;
+
+    /* Someone might think using the primary groups is a good idea. */
+    if(getegid() == gid) {
+        rval = 0;
+        goto cleanup_and_exit;
+    }
+
+    int ngroups = getgroups(0, NULL);
+
+    if(ngroups == -1) {
+        bbox_perror("bbox_check_user_in_group_build_box",
+                "error getting number of suplementary groups.\n");
+        goto cleanup_and_exit;
+    }
+
+    groups = realloc(groups, sizeof(gid_t) * ngroups);
+
+    if(groups == NULL) {
+        bbox_perror("bbox_check_user_in_group_build_box",
+                "out of memory?\n");
+        goto cleanup_and_exit;
+    }
+
+    if(getgroups(ngroups, groups) != ngroups) {
+        bbox_perror("bbox_check_user_in_group_build_box",
+                "error fetching group list: %s", strerror(errno));
+        goto cleanup_and_exit;
+    }
+
+    for(int i = 0; i < ngroups; i++) {
+        if(gid == groups[i]) {
+            rval = 0;
+            break;
+        }
+    }
+
+    if(rval != 0) {
+        bbox_perror("bbox_check_user_in_group_build_box",
+                "user is not in group '" BBOX_GROUP_NAME "'.\n");
+    }
+
+cleanup_and_exit:
+
+    free(buf);
+    free(groups);
+    return rval;
 }
 

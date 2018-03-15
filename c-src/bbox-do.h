@@ -13,6 +13,8 @@
 #define BBOX_DO_MOUNT_HOME 8
 #define BBOX_DO_MOUNT_ALL  0x0F
 
+#define BBOX_GROUP_NAME "build-box"
+
 #include <sys/types.h>
 
 typedef struct {
@@ -65,6 +67,8 @@ void bbox_sanitize_environment();
 int bbox_lower_privileges();
 int bbox_raise_privileges();
 int bbox_drop_privileges();
+
+int bbox_check_user_in_group_build_box();
 
 /* Mounting */
 
