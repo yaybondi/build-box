@@ -632,6 +632,7 @@ int bbox_check_user_in_group_build_box()
     size_t buflen = 1024;
     gid_t *groups = NULL;
 
+    /* Can't believe all this is needed just to get the group id by name!!! */
     while(1) {
         buf = realloc(buf, buflen);
 
@@ -641,6 +642,7 @@ int bbox_check_user_in_group_build_box()
             goto cleanup_and_exit;
         }
 
+        /* According to man page errno has to be initialized. Why?! */
         errno = 0;
 
         int rval = getgrnam_r(BBOX_GROUP_NAME, &grp, buf, buflen, &result);
@@ -675,6 +677,7 @@ int bbox_check_user_in_group_build_box()
         goto cleanup_and_exit;
     }
 
+    /* Get the number of supplementary groups. */
     int ngroups = getgroups(0, NULL);
 
     if(ngroups == -1) {
@@ -683,6 +686,7 @@ int bbox_check_user_in_group_build_box()
         goto cleanup_and_exit;
     }
 
+    /* Get the group list. */
     groups = realloc(groups, sizeof(gid_t) * ngroups);
 
     if(groups == NULL) {
@@ -697,6 +701,7 @@ int bbox_check_user_in_group_build_box()
         goto cleanup_and_exit;
     }
 
+    /* Now, finally (!), check if group is in group list. Phew... */
     for(int i = 0; i < ngroups; i++) {
         if(gid == groups[i]) {
             rval = 0;
