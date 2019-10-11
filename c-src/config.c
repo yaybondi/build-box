@@ -27,72 +27,39 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <pwd.h>
 #include <string.h>
 #include <errno.h>
 #include "bbox-do.h"
 
 bbox_conf_t *bbox_config_new()
 {
-    size_t i, n = 0, s = 0;
-    char *lineptr = NULL;
-    FILE *fp = fopen("/etc/passwd", "re");
+    size_t buf_size = 0;
+    char *homedir = NULL;
 
-    if(!fp) {
-        bbox_perror("bbox_config_new", "error fetching user info: %s.\n",
-                strerror(errno));
-        return NULL;
-    }
-
-    uid_t ruid = getuid();
     bbox_conf_t *conf = calloc(sizeof(bbox_conf_t), 1);
-
     if(!conf) {
-        bbox_perror("bbox_config_new", "out of memory?", strerror(errno));
+        bbox_perror("bbox_config_new", "out of memory?\n");
         return NULL;
     }
 
-    while(1)
-    {
-        ssize_t count = getline(&lineptr, &n, fp);
-
-        if(count == -1) {
-            free(lineptr);
-
-            if(!feof(fp)) {
-                bbox_perror("bbox_config_new", "error reading user info: %s.\n",
-                        strerror(errno));
-                fclose(fp);
-                free(conf);
-                return NULL;
-            }
-
-            fclose(fp);
-            break;
-        }
-
-        char *start = NULL;
-        char *end   = NULL;
-
-        for(i=0, start=lineptr; (end=index(start, ':')); start=end+1, i++) {
-            *end = '\0';
-
-            if(i == 2) {
-                uid_t pwuid = strtol(start, NULL, 10);
-                if(ruid != pwuid)
-                    break;
-            }
-
-            if(i == 5) {
-                conf->home_dir = strdup(start);
-                bbox_path_join(&(conf->target_dir), start, ".bolt/targets", &s);
-            }
-        }
+    if((homedir = getenv("HOME")) == NULL) {
+        struct passwd *pwd = getpwuid(geteuid());
+        if(pwd)
+            homedir = pwd->pw_dir;
     }
 
-    if(!conf->home_dir)
-        conf->home_dir = strdup("/");
-    if(!conf->target_dir)
-        conf->target_dir = strdup(".");
+    if(!homedir) {
+        bbox_perror(
+            "bbox_config_new", "could not determine user home directory.\n"
+        );
+    }
+
+    conf->home_dir = strdup(homedir);
+    bbox_path_join(
+        &(conf->target_dir), conf->home_dir, ".bolt/targets", &buf_size
+    );
+
     conf->do_mount = 0;
     conf->do_file_updates = 0;
 
@@ -106,7 +73,7 @@ int bbox_config_set_target_dir(bbox_conf_t *conf, const char *path)
     conf->target_dir = strdup(path);
 
     if(!conf->target_dir) {
-        bbox_perror("bbox_config_new", "out of memory? %s.\n", strerror(errno));
+        bbox_perror("bbox_config_new", "out of memory?\n");
         return -1;
     }
 
@@ -125,7 +92,7 @@ int bbox_config_set_home_dir(bbox_conf_t *conf, const char *path)
     conf->home_dir = strdup(path);
 
     if(!conf->home_dir) {
-        bbox_perror("bbox_config_new", "out of memory? %s.\n", strerror(errno));
+        bbox_perror("bbox_config_new", "out of memory?\n");
         return -1;
     }
 
@@ -229,6 +196,8 @@ unsigned int bbox_config_do_file_updates(const bbox_conf_t *c)
 
 void bbox_config_free(bbox_conf_t *conf)
 {
+    if(conf->home_dir)
+        free(conf->home_dir);
     if(conf->target_dir)
         free(conf->target_dir);
     free(conf);

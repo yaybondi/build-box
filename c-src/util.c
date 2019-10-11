@@ -224,8 +224,7 @@ void bbox_sep_join(char **buf_ptr, const char *base, const char *sep,
         *buf_ptr = realloc(*buf_ptr, req_buf_size);
 
         if(!*buf_ptr) {
-            bbox_perror("bbox_sep_join", "out of memory? %s\n",
-                    strerror(errno));
+            bbox_perror("bbox_sep_join", "out of memory?\n");
             abort();
         }
 
@@ -259,8 +258,7 @@ void bbox_path_join(char **buf_ptr, const char *base, const char *sub,
         *buf_ptr = realloc(*buf_ptr, req_buf_size);
 
         if(!*buf_ptr) {
-            bbox_perror("bbox_path_join", "out of memory? %s\n",
-                    strerror(errno));
+            bbox_perror("bbox_path_join", "out of memory?\n");
             abort();
         }
 

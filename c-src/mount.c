@@ -147,7 +147,7 @@ int bbox_mount_is_mounted(const char *path)
     }
 
     if(!(buf = malloc(buf_len))) {
-        bbox_perror("mount", "out of memory? %s.\n", strerror(errno));
+        bbox_perror("mount", "out of memory?\n");
         rval = -1;
         goto cleanup_and_exit;
     }
@@ -161,8 +161,7 @@ int bbox_mount_is_mounted(const char *path)
                 buf_len *= 2;
                 buf = realloc(buf, buf_len);
                 if(!buf) {
-                    bbox_perror("mount", "out of memory? %s.\n",
-                            strerror(errno));
+                    bbox_perror("mount", "out of memory?\n");
                     rval = -1;
                     goto cleanup_and_exit;
                 }
