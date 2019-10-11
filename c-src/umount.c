@@ -38,9 +38,9 @@ void bbox_umount_usage()
 {
     printf(
         "Build Box NG Management Utility, Version %s                             \n"
-        "Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>               \n"
+        "Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>                  \n"
         "                                                                        \n"
-        "Usage: bbox-do umount [OPTIONS] <target>                                \n"
+        "Usage: build-box-do umount [OPTIONS] <target>                           \n"
         "                                                                        \n"
         "OPTIONS:                                                                \n"
         "                                                                        \n"

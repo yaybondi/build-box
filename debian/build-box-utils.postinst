@@ -20,7 +20,7 @@ set -e
 
 case "$1" in
     configure)
-        chmod u+s /usr/bin/bbox-do
+        chmod u+s /usr/bin/build-box-do
         addgroup --system build-box >/dev/null 2>&1 || true
     ;;
 

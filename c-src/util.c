@@ -285,7 +285,7 @@ void bbox_perror(char *lead, char *format, ...)
 {
     va_list ap;
     va_start(ap, format);
-    fprintf(stderr, "bbox-do %s: ", lead);
+    fprintf(stderr, "build-box-do %s: ", lead);
     vfprintf(stderr, format, ap);
     va_end(ap);
 }

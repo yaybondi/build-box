@@ -1,5 +1,5 @@
 AC_INIT([Build Box NG Utils], [1.0], [tobias.koch@gmail.com],
-	[bbox-do], [https://github.com/tobijk/build-box-utils])
+	[build-box-do], [https://github.com/tobijk/build-box-utils])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_PROG_CC
 AC_CONFIG_HEADERS([config.h])

@@ -38,7 +38,7 @@ void bbox_login_usage()
         "Build Box NG Management Utility, Version %s                            \n"
         "Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>                 \n"
         "                                                                       \n"
-        "Usage: bbox-do login [OPTIONS] <target>                                \n"
+        "Usage: build-box-do login [OPTIONS] <target>                           \n"
         "                                                                       \n"
         "OPTIONS:                                                               \n"
         "                                                                       \n"

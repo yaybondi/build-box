@@ -40,7 +40,7 @@ void bbox_mount_usage()
         "Build Box NG Management Utility, Version %s                             \n"
         "Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>                  \n"
         "                                                                        \n"
-        "Usage: bbox-do mount [OPTIONS] <target>                                 \n"
+        "Usage: build-box-do mount [OPTIONS] <target>                            \n"
         "                                                                        \n"
         "OPTIONS:                                                                \n"
         "                                                                        \n"

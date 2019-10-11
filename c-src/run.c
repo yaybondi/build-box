@@ -35,9 +35,9 @@ void bbox_run_usage()
 {
     printf(
         "Build Box NG Management Utility, Version %s                            \n"
-        "Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>              \n"
+        "Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>                 \n"
         "                                                                       \n"
-        "Usage: bbox-do run [OPTIONS] <target> -- <command line to run>         \n"
+        "Usage: build-box-do run [OPTIONS] <target> -- <command line to run>    \n"
         "                                                                       \n"
         "OPTIONS:                                                               \n"
         "                                                                       \n"

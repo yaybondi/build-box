@@ -1,5 +1,5 @@
-bin_PROGRAMS = bbox-do
-bbox_do_SOURCES = bbox-do.c\
+bin_PROGRAMS = build-box-do
+build_box_do_SOURCES = bbox-do.c\
     config.c\
     list.c\
     login.c\

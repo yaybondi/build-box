@@ -18,7 +18,7 @@ setup(
     packages=['org.boltlinux.buildbox'],
     package_dir={'': 'lib'},
     data_files=[
-        ('/usr/bin', ['bin/bbox', 'bin/bbox-do']),
+        ('/usr/bin', ['bin/build-box', 'bin/build-box-do']),
     ],
     platforms=['Linux'],
 
