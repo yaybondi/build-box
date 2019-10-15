@@ -10,7 +10,8 @@ Architecture: any
 Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends},
     qemu-user-static,
     mount,
-    fakeroot
+    fakeroot,
+    opkg
 Description: utilities for managing Bolt OS build roots
  Build Box NG is a collection of tools for bootstrapping and working with Bolt
  OS cross-compilation environments. It allows you to log into target root file
