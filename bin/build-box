@@ -80,9 +80,9 @@ if __name__ == "__main__":
 
         command = sys.argv[1]
 
-        if command in ["list", "login", "mount", "umount", "run"]:
+        if command in ["login", "mount", "umount", "run"]:
             bbox_do("build-box-do", *sys.argv[1:])
-        elif command in ["create", "delete"]:
+        elif command in ["create", "list", "delete"]:
             BBoxCLI().run(*sys.argv[1:])
         elif command in ["--help", "-h"]:
             print_usage()
@@ -90,8 +90,11 @@ if __name__ == "__main__":
             sys.stderr.write("build-box: unknown command '%s'.\n" % command)
             sys.exit(BBOX_ERR_INVOCATION)
         #end if
+    except BBoxError as e:
+        sys.stderr.write("build-box: {}\n".format(str(e)))
+        sys.exit(BBOX_ERR_RUNTIME)
     except KeyboardInterrupt:
-        sys.stderr.write("Caught keyboard interrupt. Exiting.\n")
-        sys.exit(0)
+        sys.stderr.write("build-box: caught keyboard interrupt, exiting.\n")
+        sys.exit(BBOX_ERR_RUNTIME)
     #end try
 #end __main__
