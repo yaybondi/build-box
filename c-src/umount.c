@@ -133,7 +133,9 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
 
     bbox_path_join(&buf, sys_root, mount_point, &buf_len);
 
-    if(lstat(buf, &st) < 0) {
+    if(lstat(buf, &st) == -1) {
+        if(errno == ENOENT)
+            return 0;
         bbox_perror("umount", "could not stat '%s': %s.\n", buf,
                 strerror(errno));
         free(buf);
