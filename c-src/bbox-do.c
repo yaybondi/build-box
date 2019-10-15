@@ -36,7 +36,6 @@ void bbox_main_usage()
         "                                                                    \n"
         "COMMANDS:                                                           \n"
         "                                                                    \n"
-        "  list     List all existing targets.                               \n"
         "  login    Chroot into a target.                                    \n"
         "  mount    Mount /home and special file systems (dev, proc, sys).   \n"
         "  umount   Unmount /home and special file systems.                  \n"
@@ -67,8 +66,6 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    if(strcmp(command, "list") == 0)
-        return bbox_list(argc-1, &argv[1]);
     if(strcmp(command, "login") == 0)
         return bbox_login(argc-1, &argv[1]);
     if(strcmp(command, "mount") == 0)
