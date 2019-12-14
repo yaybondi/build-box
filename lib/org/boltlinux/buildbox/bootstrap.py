@@ -53,10 +53,10 @@ option force_postinstall
 # FEEDS
 ##############################################################################
 
-src/gz main {repo_base}/{suite}/{libc}/{arch}/main
-src/gz main-debug {repo_base}/{suite}/{libc}/{arch}/main-debug
-src/gz tools {repo_base}/{suite}/{libc}/{arch}/tools
-src/gz tools-debug {repo_base}/{suite}/{libc}/{arch}/tools-debug
+src/gz main {repo_base}/{release}/{libc}/{arch}/main
+src/gz main-debug {repo_base}/{release}/{libc}/{arch}/main-debug
+src/gz tools {repo_base}/{release}/{libc}/{arch}/tools
+src/gz tools-debug {repo_base}/{release}/{libc}/{arch}/tools-debug
 
 ##############################################################################
 # ARCHES
@@ -82,18 +82,18 @@ TOOLS_TYPE=x86_64-tools-linux-musl
 
 class BBoxBootstrap:
 
-    def __init__(self, suite, arch, libc="musl"):
+    def __init__(self, release, arch, libc="musl"):
         if not valid_arch(arch):
             raise BBoxError("unknown target architecture: {}".format(arch))
 
-        self._suite = suite
-        self._arch  = arch
-        self._libc  = libc
+        self._release = release
+        self._arch = arch
+        self._libc = libc
     #end function
 
     def bootstrap(self, target_dir, specfile, force=False, **options):
         context = {
-            "suite": self._suite,
+            "release": self._release,
             "libc": self._libc,
             "arch": self._arch,
             "target_id": os.path.basename(target_dir),
@@ -127,7 +127,7 @@ class BBoxBootstrap:
 
     def package_cache(self):
         return os.path.join(
-            homedir(), ".bolt", "cache", "binaries", self._suite, self._arch
+            homedir(), ".bolt", "cache", "binaries", self._release, self._arch
         )
     #end function
 

@@ -63,20 +63,20 @@ class BBoxCLI:
 
                 OPTIONS:
 
-                 -h,--help           Print this help message and exit immediately.
-                 -s,--suite <suite>  The name of the suite to bootstrap (default: stable)
-                 -a,--arch <arch>    The architecture to bootstrap (default: x86_64)
-                 -t,--targets <dir>  Create target below the given directory. The default
-                                     target base directory is '~/.bolt/targets'.
-                 --force             Overwrite any existing target with the same name.
-                 --repo-base <url>   Repository base URL up to and including the "repo"
-                                     folder.
+                 -h,--help              Print this help message and exit immediately.
+                 -r,--release <name>    The name of the release to bootstrap (default: stable)
+                 -a,--arch <arch>       The architecture to bootstrap (default: x86_64)
+                 -t,--target-dir <dir>  Create target below the given directory. The default
+                                        target base directory is '~/.bolt/targets'.
+                 --force                Overwrite any existing target with the same name.
+                 --repo-base <url>      Repository base URL up to and including the "repo"
+                                        folder.
                 """
             ))
         #end inline function
 
         options = {
-            "suite":
+            "release":
                 "stable",
             "arch":
                 "x86_64",
@@ -91,7 +91,7 @@ class BBoxCLI:
         try:
             opts, args = getopt.getopt(
                 args, "hs:a:t:", [
-                    "suite=", "arch=", "targets=", "force", "repo-base="
+                    "release=", "arch=", "target-dir=", "force", "repo-base="
                 ]
             )
         except getopt.GetoptError as e:
@@ -100,13 +100,13 @@ class BBoxCLI:
 
         for o, v in opts:
             for case in switch(o):
-                if case("-s", "--suite"):
-                    options["suite"] = v.strip()
+                if case("-r", "--release"):
+                    options["release"] = v.strip()
                     break
                 if case("-a", "--arch"):
                     options["arch"] = v.strip()
                     break
-                if case("-t", "--targets"):
+                if case("-t", "--target-dir"):
                     options["target_prefix"] = os.path.normpath(
                         os.path.abspath(v.strip())
                     )
@@ -136,9 +136,9 @@ class BBoxCLI:
 
                 OPTIONS:
 
-                 -h,--help           Print this help message and exit immediately.
-                 -t,--targets <dir>  Search for targets in the given directory. The
-                                     default location is '~/.bolt/targets'.
+                 -h,--help              Print this help message and exit immediately.
+                 -t,--target-dir <dir>  Search for targets in the given directory. The
+                                        default location is '~/.bolt/targets'.
                 """
             ))
 
@@ -149,7 +149,7 @@ class BBoxCLI:
 
         try:
             opts, args = getopt.getopt(
-                args, "ht:", ["targets="]
+                args, "ht:", ["target-dir="]
             )
         except getopt.GetoptError as e:
             usage()
@@ -157,7 +157,7 @@ class BBoxCLI:
 
         for o, v in opts:
             for case in switch(o):
-                if case("-t", "--targets"):
+                if case("-t", "--target-dir"):
                     options["target_prefix"] = os.path.normpath(
                         os.path.abspath(v.strip())
                     )
@@ -180,9 +180,9 @@ class BBoxCLI:
 
                 OPTIONS:
 
-                 -h,--help           Print this help message and exit immediately.
-                 -t,--targets <dir>  Look for target to delete below in the given directory.
-                                     The default location is '~/.bolt/targets'.
+                 -h,--help              Print this help message and exit immediately.
+                 -t,--target-dir <dir>  Look for target to delete below in the given directory.
+                                        The default location is '~/.bolt/targets'.
                 """
             ))
 
@@ -193,7 +193,7 @@ class BBoxCLI:
 
         try:
             opts, args = getopt.getopt(
-                args, "ht:", ["targets="]
+                args, "ht:", ["target-dir="]
             )
         except getopt.GetoptError as e:
             usage()
@@ -201,7 +201,7 @@ class BBoxCLI:
 
         for o, v in opts:
             for case in switch(o):
-                if case("-t", "--targets"):
+                if case("-t", "--target-dir"):
                     options["target_prefix"] = os.path.normpath(
                         os.path.abspath(v.strip())
                     )

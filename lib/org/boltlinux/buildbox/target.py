@@ -57,7 +57,7 @@ class BBoxTarget:
             os.makedirs(target_dir)
 
         bootstrapper = BBoxBootstrap(
-            options.get("suite", "stable"),
+            options.get("release", "stable"),
             options.get("arch", "x86_64"),
         )
 
