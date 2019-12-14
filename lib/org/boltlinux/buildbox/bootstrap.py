@@ -153,6 +153,7 @@ class BBoxBootstrap:
         if not os.path.exists(var_run_symlink):
             os.symlink("../run", var_run_symlink)
 
+        # NOTE: important detail here...
         shutil.copy2(opkg_conf, os.path.join(target_dir, "etc", "opkg"))
 
         opkg_cmd = shlex.split(
