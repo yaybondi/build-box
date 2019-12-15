@@ -90,7 +90,7 @@ class BBoxCLI:
 
         try:
             opts, args = getopt.getopt(
-                args, "hs:a:t:", [
+                args, "hr:a:t:", [
                     "release=", "arch=", "target-dir=", "force", "repo-base="
                 ]
             )
