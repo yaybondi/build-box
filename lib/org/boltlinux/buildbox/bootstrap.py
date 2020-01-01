@@ -117,12 +117,9 @@ class BBoxBootstrap:
             opkg_conf = os.path.join(dirname, "opkg.conf")
             with open(opkg_conf, "w+", encoding="utf-8") as f:
                 f.write(OPKG_CONFIG_TEMPLATE.format(**context))
-            self._prepare_target(opkg_conf, target_dir, batches)
-        #end with
 
-        etc_target = os.path.join(target_dir, "etc", "target")
-        with open(etc_target, "w+", encoding="utf-8") as f:
-            f.write(ETC_TARGET_TEMPLATE.format(**context))
+            self._prepare_target(opkg_conf, target_dir, batches, **context)
+        #end with
     #end function
 
     def package_cache(self):
@@ -133,7 +130,7 @@ class BBoxBootstrap:
 
     # PRIVATE
 
-    def _prepare_target(self, opkg_conf, target_dir, batches):
+    def _prepare_target(self, opkg_conf, target_dir, batches, **context):
         dirs_to_create = [
             "var",
             "run",
@@ -148,6 +145,10 @@ class BBoxBootstrap:
             full_path = os.path.join(target_dir, dirname)
             os.makedirs(full_path, exist_ok=True)
         #end for
+
+        etc_target = os.path.join(target_dir, "etc", "target")
+        with open(etc_target, "w+", encoding="utf-8") as f:
+            f.write(ETC_TARGET_TEMPLATE.format(**context))
 
         var_run_symlink = os.path.join(target_dir, "var", "run")
         if not os.path.exists(var_run_symlink):
@@ -192,9 +193,8 @@ class BBoxBootstrap:
         #end if
 
         batches = []
-
         active_batch = []
-        active_mode  = None
+        active_mode = None
 
         with open(specfile, "r", encoding="utf-8") as f:
             lineno = 0
