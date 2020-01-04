@@ -56,6 +56,18 @@ class BBoxTarget:
         else:
             os.makedirs(target_dir)
 
+        dev_dir = os.path.join(target_dir, "dev")
+        if not os.path.exists(dev_dir):
+            os.makedirs(dev_dir)
+
+        mount_cmd = shlex.split(
+            "/usr/bin/build-box mount -m dev -t '{}' .".format(target_dir)
+        )
+
+        proc = subprocess.run(mount_cmd)
+        if proc.returncode != 0:
+            raise BBoxError("failed to bind mount /dev.")
+
         bootstrapper = BBoxBootstrap(
             options.get("release", "stable"),
             options.get("arch", "x86_64"),
