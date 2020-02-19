@@ -22,6 +22,8 @@
  * THE SOFTWARE.
  */
 
+#include <unistd.h>
+#include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
 #include "bbox-do.h"
@@ -47,6 +49,11 @@ void bbox_main_usage()
 
 int main(int argc, char *argv[])
 {
+    if(getuid() == 0) {
+        bbox_perror("main", "build-box must not be used by root.\n");
+        return BBOX_ERR_INVOCATION;
+    }
+
     if(bbox_lower_privileges() == -1)
         return BBOX_ERR_RUNTIME;
 
