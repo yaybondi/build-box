@@ -202,9 +202,14 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
         free(buf);
         return -1;
     }
-
     if(S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode)) {
         bbox_perror("mount", "%s is not a directory.\n", buf);
+        free(buf);
+        return -1;
+    }
+    if(st.st_uid != getuid()) {
+        bbox_perror("mount", "directory '%s' is not owned by user.\n",
+                buf);
         free(buf);
         return -1;
     }
