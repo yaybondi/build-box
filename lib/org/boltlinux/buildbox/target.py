@@ -145,7 +145,9 @@ class BBoxTarget:
         if proc.returncode != 0:
             raise BBoxError("failed to remove bind mounts.")
 
-        for subdir in ["dev", "proc", "sys", "home"]:
+        homedir = os.path.abspath(pwd.getpwuid().pw_dir)
+
+        for subdir in ["dev", "proc", "sys", homedir]:
             full_path = os.path.join(target_dir, subdir)
             if os.path.exists(full_path) and os.listdir(full_path):
                 raise BBoxError(
