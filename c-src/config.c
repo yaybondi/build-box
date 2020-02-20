@@ -43,7 +43,7 @@ bbox_conf_t *bbox_config_new()
         return NULL;
     }
 
-    struct passwd *pwd = getpwuid(geteuid());
+    struct passwd *pwd = getpwuid(getuid());
     if(pwd)
         homedir = pwd->pw_dir;
 
