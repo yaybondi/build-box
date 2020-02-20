@@ -49,13 +49,19 @@ bbox_conf_t *bbox_config_new()
             homedir = pwd->pw_dir;
     }
 
-    if(!homedir) {
+    if(!homedir || !(homedir = realpath(homedir, NULL))) {
         bbox_perror(
             "bbox_config_new", "could not determine user home directory.\n"
         );
+        return NULL;
     }
 
-    conf->home_dir = strdup(homedir);
+    if(bbox_isdir_and_owned_by("bbox_config_new", homedir, getuid()) == -1) {
+        free(homedir);
+        return NULL;
+    }
+
+    conf->home_dir = homedir;
     bbox_path_join(
         &(conf->target_dir), conf->home_dir, ".bolt/targets", &buf_size
     );

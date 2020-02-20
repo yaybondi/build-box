@@ -55,11 +55,11 @@ void bbox_sep_join(char **buf_ptr, const char *base, const char *sep,
         const char *sub, size_t *n_ptr);
 void bbox_path_join(char **buf_ptr, const char *base, const char *sub,
         size_t *n_ptr);
-void bbox_perror(char *lead, char *msg, ...);
+void bbox_perror(const char *lead, const char *msg, ...);
 int bbox_login_sh_chrooted(char *sys_root, char *home_dir);
 int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
         int argc, char * const argv[]);
-int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
+int bbox_run_command_capture(const char *cmd, char * const argv[],
         char **out_buf, size_t *out_buf_size);
 void bbox_update_chroot_dynamic_config(const char *sys_root);
 void bbox_sanitize_environment();
@@ -69,6 +69,9 @@ int bbox_raise_privileges();
 int bbox_drop_privileges();
 
 int bbox_check_user_in_group_build_box();
+int bbox_isdir_and_owned_by(const char *module, const char *dir, uid_t uid);
+int bbox_sysroot_mkdir_p(const char *module, const char *sysroot,
+        const char *path);
 
 /* Mounting */
 

@@ -196,20 +196,7 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
 
     bbox_path_join(&buf, sys_root, mount_point, &buf_len);
 
-    if(lstat(buf, &st) < 0) {
-        bbox_perror("mount", "could not stat '%s': %s.\n", buf,
-                strerror(errno));
-        free(buf);
-        return -1;
-    }
-    if(S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode)) {
-        bbox_perror("mount", "%s is not a directory.\n", buf);
-        free(buf);
-        return -1;
-    }
-    if(st.st_uid != getuid()) {
-        bbox_perror("mount", "directory '%s' is not owned by user.\n",
-                buf);
+    if(bbox_isdir_and_owned_by("mount", buf, getuid()) == -1) {
         free(buf);
         return -1;
     }
@@ -219,8 +206,10 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
         return -1;
     }
 
-    if(is_mounted)
+    if(is_mounted) {
+        free(buf);
         return 0;
+    }
 
     char *out_buf = NULL;
     size_t out_buf_len = 0;
@@ -233,7 +222,7 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
         return -1;
     }
 
-    if(bbox_runas_fetch_output(0, "mount", argv, &out_buf, &out_buf_len) != 0) {
+    if(bbox_run_command_capture("mount", argv, &out_buf, &out_buf_len) != 0) {
         if(out_buf) {
             bbox_perror("mount", "failed to mount %s: \"%s\".\n",
                     mount_point, out_buf);
@@ -253,20 +242,8 @@ int bbox_mount_any(const bbox_conf_t *conf, const char *sys_root)
 {
     struct stat st;
 
-    if(lstat(sys_root, &st) < 0) {
-        bbox_perror("mount", "could not stat '%s': %s.\n", sys_root,
-                strerror(errno));
+    if(bbox_isdir_and_owned_by("mount", sys_root, getuid()) == -1)
         return -1;
-    }
-    if(S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode)) {
-        bbox_perror("mount", "'%s' is not a directory.\n", sys_root);
-        return -1;
-    }
-    if(st.st_uid != getuid()) {
-        bbox_perror("mount", "directory '%s' is not owned by user.\n",
-                sys_root);
-        return -1;
-    }
 
     if(bbox_config_get_mount_dev(conf)) {
         if(bbox_mount_bind(sys_root, "/dev") < 0)
@@ -284,7 +261,11 @@ int bbox_mount_any(const bbox_conf_t *conf, const char *sys_root)
     }
 
     if(bbox_config_get_mount_home(conf)) {
-        if(bbox_mount_bind(sys_root, "/home") < 0)
+        const char *homedir = bbox_config_get_home_dir(conf);
+
+        if(bbox_sysroot_mkdir_p("mount", sys_root, homedir) == -1)
+            return -1;
+        if(bbox_mount_bind(sys_root, homedir) < 0)
             return -1;
     }
 

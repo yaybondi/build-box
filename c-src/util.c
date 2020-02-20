@@ -281,7 +281,7 @@ void bbox_path_join(char **buf_ptr, const char *base, const char *sub,
     memmove((void*) *buf_ptr + base_len, sub, sub_len + 1);
 }
 
-void bbox_perror(char *lead, char *format, ...)
+void bbox_perror(const char *lead, const char *format, ...)
 {
     va_list ap;
     va_start(ap, format);
@@ -296,7 +296,7 @@ int bbox_login_sh_chrooted(char *sys_root, char *home_dir)
 
     char *sh = NULL;
     struct stat st;
-    int uid = getuid();
+    uid_t uid = getuid();
 
     /* change into system folder. */
     if(chdir(sys_root) == -1) {
@@ -367,7 +367,7 @@ int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
     char *buf = NULL;
     size_t buf_len = 0;
     struct stat st;
-    int uid = getuid();
+    uid_t uid = getuid();
 
     if(argc == 0) {
         bbox_perror("bbox_runas_user_chrooted",
@@ -465,7 +465,7 @@ int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
     return WEXITSTATUS(child_status);
 }
 
-int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
+int bbox_run_command_capture(const char *cmd, char * const argv[],
         char **out_buf, size_t *out_buf_size)
 {
     int pid;
@@ -477,14 +477,14 @@ int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
     char buf[BBOX_COPY_BUF_SIZE];
 
     if(pipe(pipefd) == -1) {
-        bbox_perror("bbox_runas_fetch_output",
+        bbox_perror("bbox_run_command_capture",
                 "failed to construct pipe: %s.\n",
                 strerror(errno));
         return -1;
     }
 
     if((pid = fork()) == -1) {
-        bbox_perror("bbox_runas_fetch_output",
+        bbox_perror("bbox_run_command_capture",
                 "failed to start subprocess: %s.\n",
                 strerror(errno));
         return -1;
@@ -497,10 +497,7 @@ int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
         dup2(pipefd[1], STDERR_FILENO);
         close(pipefd[1]);
 
-        if(uid == 0) {
-            if(bbox_raise_privileges() == -1)
-                _exit(BBOX_ERR_RUNTIME);
-        }
+        setenv("LC_ALL", "C", 1);
         execvp(cmd, argv);
 
         /* if we make it here exec failed. */
@@ -517,7 +514,7 @@ int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
             *out_buf = realloc(*out_buf, *out_buf_size);
 
             if(!*out_buf) {
-                bbox_perror("bbox_runas_fetch_output",
+                bbox_perror("bbox_run_command_capture",
                         "out of memory? %s.\n",
                         strerror(errno));
                 return -1;
@@ -550,7 +547,7 @@ int bbox_runas_fetch_output(uid_t uid, const char *cmd, char * const argv[],
     }
 
     if(waitpid(pid, &child_status, 0) == -1) {
-        bbox_perror("bbox_runas_fetch_output",
+        bbox_perror("bbox_run_command_capture",
                 "unable to retrieve child exit status: %s.\n",
                 strerror(errno));
         return -1;
@@ -719,3 +716,53 @@ cleanup_and_exit:
     return rval;
 }
 
+int bbox_isdir_and_owned_by(const char *module, const char *dir, uid_t uid)
+{
+    struct stat st;
+
+    if(lstat(dir, &st) < 0) {
+        bbox_perror(
+            module, "could not stat '%s': %s.\n", dir, strerror(errno)
+        );
+        return -1;
+    }
+    if(S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode)) {
+        bbox_perror(module, "%s is not a directory.\n", dir);
+        return -1;
+    }
+    if(st.st_uid != uid) {
+        bbox_perror(module, "directory '%s' is not owned by user id '%ld'.\n",
+                dir, (long) uid);
+        return -1;
+    }
+
+    return 0;
+}
+
+int bbox_sysroot_mkdir_p(const char *module, const char *sys_root,
+        const char *path)
+{
+    char *buf = NULL;
+    size_t buf_len = 0;
+
+    bbox_path_join(&buf, sys_root, path, &buf_len);
+
+    char *out_buf = NULL;
+    size_t out_buf_len = 0;
+    char * const argv[] = {"mkdir", "-p", buf, NULL};
+
+    int rval = bbox_run_command_capture("mkdir", argv, &out_buf, &out_buf_len);
+
+    if(rval != 0) {
+        if(out_buf) {
+            bbox_perror(
+                module, "failed to create directory %s: \"%s\".\n",
+                buf, out_buf
+            );
+        }
+
+        rval = -1;
+    }
+
+    return rval;
+}
