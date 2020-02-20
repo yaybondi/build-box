@@ -24,6 +24,7 @@
 #
 
 import os
+import pwd
 import re
 import shlex
 import subprocess
