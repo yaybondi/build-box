@@ -43,11 +43,9 @@ bbox_conf_t *bbox_config_new()
         return NULL;
     }
 
-    if((homedir = getenv("HOME")) == NULL) {
-        struct passwd *pwd = getpwuid(geteuid());
-        if(pwd)
-            homedir = pwd->pw_dir;
-    }
+    struct passwd *pwd = getpwuid(geteuid());
+    if(pwd)
+        homedir = pwd->pw_dir;
 
     if(!homedir || !(homedir = realpath(homedir, NULL))) {
         bbox_perror(
