@@ -134,16 +134,12 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
     bbox_path_join(&buf, sys_root, mount_point, &buf_len);
 
     if(lstat(buf, &st) == -1) {
-        if(errno == ENOENT)
+        if(errno == ENOENT) {
+            free(buf);
             return 0;
+        }
         bbox_perror("umount", "could not stat '%s': %s.\n", buf,
                 strerror(errno));
-        free(buf);
-        return -1;
-    }
-
-    if(S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode)) {
-        bbox_perror("umount", "%s is not a directory.\n", buf);
         free(buf);
         return -1;
     }
@@ -153,8 +149,16 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
         return -1;
     }
 
-    if(!is_mounted)
+    if(!is_mounted) {
+        free(buf);
         return 0;
+    }
+
+    if(S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode)) {
+        bbox_perror("umount", "%s is not a directory.\n", buf);
+        free(buf);
+        return -1;
+    }
 
     char *out_buf = NULL;
     size_t out_buf_len = 0;
