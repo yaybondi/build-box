@@ -148,7 +148,7 @@ class BBoxTarget:
 
         homedir = os.path.abspath(pwd.getpwuid(os.getuid()).pw_dir)
 
-        for subdir in ["dev", "proc", "sys", homedir]:
+        for subdir in ["dev", "proc", "sys", homedir.lstrip(os.sep)]:
             full_path = os.path.join(target_dir, subdir)
             if os.path.exists(full_path) and os.listdir(full_path):
                 raise BBoxError(
