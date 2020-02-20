@@ -196,11 +196,6 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
 
     bbox_path_join(&buf, sys_root, mount_point, &buf_len);
 
-    if(bbox_isdir_and_owned_by("mount", buf, getuid()) == -1) {
-        free(buf);
-        return -1;
-    }
-
     if((is_mounted = bbox_mount_is_mounted(buf)) == -1) {
         free(buf);
         return -1;
@@ -209,6 +204,11 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
     if(is_mounted) {
         free(buf);
         return 0;
+    }
+
+    if(bbox_isdir_and_owned_by("mount", buf, getuid()) == -1) {
+        free(buf);
+        return -1;
     }
 
     char *out_buf = NULL;
