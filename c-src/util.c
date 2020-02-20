@@ -465,7 +465,7 @@ int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
     return WEXITSTATUS(child_status);
 }
 
-int bbox_run_command_capture(const char *cmd, char * const argv[],
+int bbox_run_command_capture(uid_t uid, const char *cmd, char * const argv[],
         char **out_buf, size_t *out_buf_size)
 {
     int pid;
@@ -498,6 +498,10 @@ int bbox_run_command_capture(const char *cmd, char * const argv[],
         close(pipefd[1]);
 
         setenv("LC_ALL", "C", 1);
+        if(uid == 0) {
+            if(bbox_raise_privileges() == -1)
+                _exit(BBOX_ERR_RUNTIME);
+        }
         execvp(cmd, argv);
 
         /* if we make it here exec failed. */
@@ -751,7 +755,8 @@ int bbox_sysroot_mkdir_p(const char *module, const char *sys_root,
     size_t out_buf_len = 0;
     char * const argv[] = {"mkdir", "-p", buf, NULL};
 
-    int rval = bbox_run_command_capture("mkdir", argv, &out_buf, &out_buf_len);
+    int rval = bbox_run_command_capture(getuid(), "mkdir", argv, &out_buf,
+            &out_buf_len);
 
     if(rval != 0) {
         if(out_buf) {

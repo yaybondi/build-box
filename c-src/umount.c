@@ -166,7 +166,7 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
         return -1;
     }
 
-    if(bbox_run_command_capture("umount", argv, &out_buf,
+    if(bbox_run_command_capture(0, "umount", argv, &out_buf,
                 &out_buf_len) != 0)
     {
         if(out_buf) {

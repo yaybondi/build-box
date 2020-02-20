@@ -222,7 +222,8 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
         return -1;
     }
 
-    if(bbox_run_command_capture("mount", argv, &out_buf, &out_buf_len) != 0) {
+    if(bbox_run_command_capture(0, "mount", argv, &out_buf, &out_buf_len) != 0)
+    {
         if(out_buf) {
             bbox_perror("mount", "failed to mount %s: \"%s\".\n",
                     mount_point, out_buf);
