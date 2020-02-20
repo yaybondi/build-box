@@ -46,7 +46,7 @@ void bbox_run_usage()
         " -t,--targets <dir>   Search for targets in the given directory. The   \n"
         "                      default location is '~/.bolt/targets'.           \n"
         "                                                                       \n"
-        " -n,--no-mount        Do not bind mount /home and special filesystems. \n"
+        " -n,--no-mount        Don't bind mount homedir and special filesystems.\n"
         "                      This does *not* unmount previously mounted       \n"
         "                      file systems. Use 'bbox-do umount' for that.     \n"
         "                                                                       \n"
