@@ -191,8 +191,12 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
 int bbox_umount_any(const bbox_conf_t *conf, const char *sys_root)
 {
     struct stat st;
+    char *buf = NULL;
+    size_t buf_len = 0;
 
-    if(bbox_isdir_and_owned_by("umount", sys_root, getuid()) == -1)
+    uid_t uid = getuid();
+
+    if(bbox_isdir_and_owned_by("umount", sys_root, uid) == -1)
         return -1;
 
     if(!bbox_config_get_mount_dev(conf)) {
@@ -213,17 +217,40 @@ int bbox_umount_any(const bbox_conf_t *conf, const char *sys_root)
     if(!bbox_config_get_mount_home(conf)) {
         const char *homedir = bbox_config_get_home_dir(conf);
 
-        char *buf = NULL;
-        size_t buf_len = 0;
-
         bbox_path_join(&buf, sys_root, homedir, &buf_len);
 
-        if(bbox_isdir_and_owned_by("umount", buf, getuid()) == -1)
+        if(lstat(buf, &st) == -1) {
+            if(errno == ENOENT) {
+                free(buf);
+                return 0;
+            }
+            bbox_perror("umount", "could not stat '%s': %s.\n", buf,
+                    strerror(errno));
+            free(buf);
             return -1;
-        if(bbox_umount_unbind(sys_root, homedir) < 0)
+        }
+        if(S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode)) {
+            bbox_perror("umount", "%s is not a directory.\n", buf);
+            free(buf);
             return -1;
+        }
+        if(st.st_uid != uid) {
+            bbox_perror(
+                "umount",
+                "directory '%s' is not owned by user id '%ld'.\n",
+                buf, (long) uid
+            );
+            free(buf);
+            return -1;
+        }
+
+        if(bbox_umount_unbind(sys_root, homedir) < 0) {
+            free(buf);
+            return -1;
+        }
     }
 
+    free(buf);
     return 0;
 }
 

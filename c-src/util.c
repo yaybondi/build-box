@@ -724,7 +724,7 @@ int bbox_isdir_and_owned_by(const char *module, const char *dir, uid_t uid)
 {
     struct stat st;
 
-    if(lstat(dir, &st) < 0) {
+    if(lstat(dir, &st) == -1) {
         bbox_perror(
             module, "could not stat '%s': %s.\n", dir, strerror(errno)
         );
