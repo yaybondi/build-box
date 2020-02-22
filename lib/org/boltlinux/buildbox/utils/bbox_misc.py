@@ -77,6 +77,8 @@ def target_for_machine(machine):
         return "powerpc64le-linux-musl"
     if machine.startswith("powerpc"):
         return "powerpc-linux-musl"
+    if machine.startswith("s390x"):
+        return "s390x-linux-musl"
     if re.match(r"^x86[-_]64$", machine):
         return "x86_64-bolt-linux-musl"
 #end function
