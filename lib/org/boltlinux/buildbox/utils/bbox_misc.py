@@ -53,6 +53,7 @@ def valid_arch(arch):
         "mips64el",
         "powerpc",
         "powerpc64le",
+        "s390x",
         "x86_64"
     ]
 #end function
