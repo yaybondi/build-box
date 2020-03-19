@@ -71,6 +71,10 @@ int bbox_login_getopt(bbox_conf_t *conf, int argc, char * const argv[])
         { 0,         0,                 0,  0 }
     };
 
+    /*
+     * Per default we turn on mounting of /proc /sys /dev, home and enable
+     * the copying of passwd, group and hosts files from the host.
+     */
     bbox_config_set_mount_all(conf);
     bbox_config_enable_file_updates(conf);
     optind = 1;
@@ -135,6 +139,10 @@ int bbox_login(int argc, char * const argv[])
         }
     }
 
+    /*
+     * TODO: we're currently ignoring extra arguments on the command line. This
+     *       should probably be an error instead.
+     */
     if(non_optind >= argc) {
         bbox_perror("login", "no target specified.\n");
         bbox_config_free(conf);
@@ -144,6 +152,9 @@ int bbox_login(int argc, char * const argv[])
     char *target = argv[non_optind];
     bbox_path_join(&buf, bbox_config_get_target_dir(conf), target, &buf_len);
 
+    /*
+     * Mount special directories and home if configured (default).
+     */
     if(bbox_config_get_mount_any(conf)) {
         if(bbox_mount_any(conf, buf) == -1) {
             free(buf);
@@ -152,9 +163,17 @@ int bbox_login(int argc, char * const argv[])
         }
     }
 
+    /*
+     * Copy passwd, group and hosts information from the host to the target.
+     */
     if(bbox_config_do_file_updates(conf))
         bbox_update_chroot_dynamic_config(buf);
 
+    /*
+     * We clean out most of the environment except for variables starting with
+     * BOLT_ and a few select, such as CFLAGS. Then we log into the target and
+     * change into the home directory.
+     */
     bbox_sanitize_environment();
     int rval = bbox_login_sh_chrooted(buf, bbox_config_get_home_dir(conf));
 
@@ -166,4 +185,3 @@ int bbox_login(int argc, char * const argv[])
     else
         return rval;
 }
-

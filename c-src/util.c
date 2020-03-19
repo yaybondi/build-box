@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 
+#include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -724,22 +725,41 @@ int bbox_isdir_and_owned_by(const char *module, const char *dir, uid_t uid)
 {
     struct stat st;
 
-    if(lstat(dir, &st) == -1) {
+    /*
+     * It seems important to stat the normalized path to avoid any symlink
+     * trickery. Hopefully, that is enough.
+     */
+    char *normalized = realpath(dir, NULL);
+
+    if(!normalized) {
+        bbox_perror(
+            module, "unable to normalize path '%s': %s.\n",
+            dir,
+            strerror(errno)
+        );
+        return -1;
+    }
+
+    if(lstat(normalized, &st) == -1) {
         bbox_perror(
             module, "could not stat '%s': %s.\n", dir, strerror(errno)
         );
+        free(normalized);
         return -1;
     }
     if(S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode)) {
         bbox_perror(module, "%s is not a directory.\n", dir);
+        free(normalized);
         return -1;
     }
     if(st.st_uid != uid) {
         bbox_perror(module, "directory '%s' is not owned by user id '%ld'.\n",
                 dir, (long) uid);
+        free(normalized);
         return -1;
     }
 
+    free(normalized);
     return 0;
 }
 
@@ -768,6 +788,51 @@ int bbox_sysroot_mkdir_p(const char *module, const char *sys_root,
 
         rval = -1;
     }
+
+    return rval;
+}
+
+int bbox_is_subdir_of(const char *path, const char *subdir) 
+{
+    char *real_path = NULL;
+    char *real_subdir = NULL;
+    char *buf = NULL;
+    int rval = -1;
+
+    real_path = realpath(path, NULL);
+    if(!real_path) {
+        bbox_perror("unable to normalize path %s: %s.\n",
+                path, strerror(errno));
+        goto cleanup_and_exit;
+    }
+
+    real_subdir = realpath(subdir, NULL);
+    if(!real_subdir) {
+        bbox_perror("unable to normalize path %s: %s.\n",
+                subdir, strerror(errno));
+        goto cleanup_and_exit;
+    }
+
+    size_t buf_len = strlen(real_path) + 2;
+
+    if((buf = malloc(buf_len)) == NULL) {
+        bbox_perror("bbox_is_subdir_of", "out of memory!\n");
+        abort();
+    }
+
+    strncpy(buf, real_path, buf_len);
+
+    buf[buf_len - 1] = '\0';
+    buf[buf_len - 2] = '/';
+
+    if(strncmp(buf, real_subdir, buf_len - 1) == 0)
+        rval = 0;
+
+cleanup_and_exit:
+
+    free(real_path);
+    free(real_subdir);
+    free(buf);
 
     return rval;
 }

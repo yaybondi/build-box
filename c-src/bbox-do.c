@@ -49,14 +49,32 @@ void bbox_main_usage()
 
 int main(int argc, char *argv[])
 {
+    /*
+     * Build Box has been designed to give regular users just enough privileges
+     * to work with "build boxed" chroots. Possibly, it would work fine for
+     * root, but this isn't an intended use case.
+     */
     if(getuid() == 0) {
         bbox_perror("main", "build-box must not be used by root.\n");
         return BBOX_ERR_INVOCATION;
     }
 
+    /*
+     * The `build-box` program is installed suid root, but privileges are
+     * lowered immediately and only raised again when necessary (e.g. when
+     * creating bind mounts for home, dev, sys, ...).
+     */
     if(bbox_lower_privileges() == -1)
         return BBOX_ERR_RUNTIME;
 
+    /*
+     * Build Box has safe-guards in place to prevent misuse as much as possible.
+     * But it is a suid root binary and gives developers extra powers (mostly
+     * related to bind mounting stuff). Its use on a given machine SHOULD be
+     * restricted to a dedicated build account operated by a trusted user. To
+     * enforce this, we require all users of the `build-box` command to be in
+     * group "build-box".
+     */
     if(bbox_check_user_in_group_build_box() == -1)
         return BBOX_ERR_INVOCATION;
 
@@ -73,6 +91,10 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    /*
+     * Check which command was invoked and delegate to the appropriate
+     * sub-module.
+     */
     if(strcmp(command, "login") == 0)
         return bbox_login(argc-1, &argv[1]);
     if(strcmp(command, "mount") == 0)
@@ -85,4 +107,3 @@ int main(int argc, char *argv[])
     bbox_perror("main", "unknown command '%s'.\n", command);
     return BBOX_ERR_INVOCATION;
 }
-

@@ -43,10 +43,19 @@ bbox_conf_t *bbox_config_new()
         return NULL;
     }
 
+    /*
+     * Always take the home directory from the password database, because it
+     * seems risky to let the user specify arbitrary locations in the `$HOME`
+     * environment variables.
+     */
     struct passwd *pwd = getpwuid(getuid());
     if(pwd)
         homedir = pwd->pw_dir;
 
+    /*
+     * Normalize the path to mitigate the risk of any hypothetical symlink
+     * attacks.
+     */
     if(!homedir || !(homedir = realpath(homedir, NULL))) {
         bbox_perror(
             "bbox_config_new", "could not determine user home directory.\n"
@@ -54,16 +63,29 @@ bbox_conf_t *bbox_config_new()
         return NULL;
     }
 
+    /*
+     * The home directory worked out above MUST be owned by the user who
+     * invoked the program. Anything else is fishy and there is no reason to
+     * allow it.
+     */
     if(bbox_isdir_and_owned_by("bbox_config_new", homedir, getuid()) == -1) {
         free(homedir);
         return NULL;
     }
 
+    /*
+     * Creating dotfiles and dirs directly in the user's home directory is not
+     * considered cool anymore. But lettings users search in the depths of
+     * .local doesn't seem particularly great either.
+     */
     conf->home_dir = homedir;
     bbox_path_join(
         &(conf->target_dir), conf->home_dir, ".bolt/targets", &buf_size
     );
 
+    /*
+     * Start with an empty set of actions and explicitly add them when needed.
+     */
     conf->do_mount = 0;
     conf->do_file_updates = 0;
 
@@ -206,4 +228,3 @@ void bbox_config_free(bbox_conf_t *conf)
         free(conf->target_dir);
     free(conf);
 }
-

@@ -133,6 +133,10 @@ int bbox_mount_is_mounted(const char *path)
     int rval = 0;
     FILE *fp = NULL;
 
+    /*
+     * Make sure we use the normalized path to compare against the entries in
+     * /proc/mounts.
+     */
     if(!(mount_point = realpath(path, NULL))) {
         bbox_perror("mount", "could not resolve '%s': '%s'.\n",
                 path, strerror(errno));
@@ -152,6 +156,10 @@ int bbox_mount_is_mounted(const char *path)
         goto cleanup_and_exit;
     }
 
+    /*
+     * Loop over the entries in /proc/mounts and compare against the given
+     * directory.
+     */
     while(1)
     {
         struct mntent *tmp_info = getmntent_r(fp, &info, buf, buf_len);
@@ -206,6 +214,10 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
         return 0;
     }
 
+    /*
+     * Require that the normalized mountpoint is a directory owned by the user
+     * who invoked `build-box` to mitigate the risk of misuse.
+     */
     if(bbox_isdir_and_owned_by("mount", buf, getuid()) == -1) {
         free(buf);
         return -1;
@@ -217,6 +229,10 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
         {"mount", "-o", "bind,private", (char*const) mount_point, buf, NULL};
     int rval = 0;
 
+    /*
+     * We need to be running mount as root, so we briefly raise privileges to
+     * drop them again immediately after.
+     */
     if(bbox_raise_privileges() == -1) {
         free(buf);
         return -1;
@@ -231,6 +247,9 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
         rval = -1;
     }
 
+    /*
+     * We're done with mounting, drop privileges right away.
+     */
     if(bbox_lower_privileges() == -1)
         rval = -1;
 
@@ -243,6 +262,10 @@ int bbox_mount_any(const bbox_conf_t *conf, const char *sys_root)
 {
     struct stat st;
 
+    /*
+     * As an additional precaution, we require the normalized sys-root directory
+     * to be owned by the user who invoked `build-box`.
+     */
     if(bbox_isdir_and_owned_by("mount", sys_root, getuid()) == -1)
         return -1;
 
@@ -261,11 +284,25 @@ int bbox_mount_any(const bbox_conf_t *conf, const char *sys_root)
             return -1;
     }
 
+    /*
+     * Mounting the home directory requires extra pre-caution. The source path
+     * has already been normalized and checked for ownership, so we should be
+     * fine calling `bbox_mount_bind`, which in turn checks the target directory
+     * before executing the mount.
+     */
     if(bbox_config_get_mount_home(conf)) {
         const char *homedir = bbox_config_get_home_dir(conf);
 
+        /*
+         * We're not worried about this, because we are currently running with
+         * lowered privileges.
+         */
         if(bbox_sysroot_mkdir_p("mount", sys_root, homedir) == -1)
             return -1;
+
+        /*
+         * This internally checks the ownership of <sys_root>/<homedir>.
+         */
         if(bbox_mount_bind(sys_root, homedir) < 0)
             return -1;
     }
@@ -314,4 +351,3 @@ int bbox_mount(int argc, char * const argv[])
     free(buf);
     return rval;
 }
-

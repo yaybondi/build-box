@@ -133,6 +133,18 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
 
     bbox_path_join(&buf, sys_root, mount_point, &buf_len);
 
+    /*
+     * At this point, we have already checked that sys_root belongs to the user
+     * who launched build box. Now we have to ensure that the given mountpoint
+     * is really a subdirectory of sys_root.
+     */
+    if(bbox_is_subdir_of(sys_root, buf) != 0) {
+        bbox_perror("umount", "%s is not a subdirectory of %s.\n",
+                buf, sys_root);
+        free(buf);
+        return -1;
+    }
+
     if(lstat(buf, &st) == -1) {
         if(errno == ENOENT) {
             free(buf);
@@ -144,12 +156,9 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
         return -1;
     }
 
-    if((is_mounted = bbox_mount_is_mounted(buf)) == -1) {
-        free(buf);
-        return -1;
-    }
+    is_mounted = bbox_mount_is_mounted(buf);
 
-    if(!is_mounted) {
+    if(is_mounted <= 0) {
         free(buf);
         return 0;
     }
@@ -196,6 +205,10 @@ int bbox_umount_any(const bbox_conf_t *conf, const char *sys_root)
 
     uid_t uid = getuid();
 
+    /*
+     * As an additional precaution, we require the normalized sys-root
+     * directory to be owned by the user who invoked `build-box`.
+     */
     if(bbox_isdir_and_owned_by("umount", sys_root, uid) == -1)
         return -1;
 
@@ -203,23 +216,28 @@ int bbox_umount_any(const bbox_conf_t *conf, const char *sys_root)
         if(bbox_umount_unbind(sys_root, "/dev") < 0)
             return -1;
     }
-
     if(!bbox_config_get_mount_proc(conf)) {
         if(bbox_umount_unbind(sys_root, "/proc") < 0)
             return -1;
     }
-
     if(!bbox_config_get_mount_sys(conf)) {
         if(bbox_umount_unbind(sys_root, "/sys") < 0)
             return -1;
     }
 
+    /*
+     * Unmounting the user's home directory requires extra precaution.
+     */
     if(!bbox_config_get_mount_home(conf)) {
         const char *homedir = bbox_config_get_home_dir(conf);
 
         bbox_path_join(&buf, sys_root, homedir, &buf_len);
 
+        /*
+         * We must be able to stat the bind-mounted home directory...
+         */
         if(lstat(buf, &st) == -1) {
+            /* ...unless it doesn't exist. */
             if(errno == ENOENT) {
                 free(buf);
                 return 0;
@@ -229,11 +247,19 @@ int bbox_umount_any(const bbox_conf_t *conf, const char *sys_root)
             free(buf);
             return -1;
         }
+
+        /* 
+         * It has to be a directory.
+         */
         if(S_ISLNK(st.st_mode) || !S_ISDIR(st.st_mode)) {
             bbox_perror("umount", "%s is not a directory.\n", buf);
             free(buf);
             return -1;
         }
+
+        /* 
+         * And it must belong to the user who executed build box.
+         */
         if(st.st_uid != uid) {
             bbox_perror(
                 "umount",
@@ -295,4 +321,3 @@ int bbox_umount(int argc, char * const argv[])
     free(buf);
     return rval;
 }
-

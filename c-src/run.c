@@ -145,6 +145,10 @@ int bbox_run(int argc, char * const argv[])
     char *target = argv[non_optind++];
     bbox_path_join(&buf, bbox_config_get_target_dir(conf), target, &buf_len);
 
+    /*
+     * Please have a look at the comments in mount.c to assess the safety of
+     * this block.
+     */
     if(bbox_config_get_mount_any(conf)) {
         if(bbox_mount_any(conf, buf) == -1) {
             free(buf);
@@ -153,9 +157,18 @@ int bbox_run(int argc, char * const argv[])
         }
     }
 
+    /*
+     * We're not worried about this block, because we're currently running with
+     * lowered privileges.
+     */
     if(bbox_config_do_file_updates(conf))
         bbox_update_chroot_dynamic_config(buf);
 
+    /*
+     * We clean out most of the environment except for variables starting with
+     * BOLT_ and a few select, such as CFLAGS. Then we log into the target and
+     * execute what's left on the command line.
+     */
     bbox_sanitize_environment();
     int rval = bbox_runas_user_chrooted(buf, home_dir,
             argc-non_optind, &argv[non_optind]);
@@ -168,4 +181,3 @@ int bbox_run(int argc, char * const argv[])
     else
         return rval;
 }
-
