@@ -30,7 +30,7 @@ import shlex
 import subprocess
 import shutil
 
-from org.boltlinux.buildbox.utils import homedir
+from org.boltlinux.buildbox.utils import homedir as get_homedir
 from org.boltlinux.buildbox.bootstrap import BBoxBootstrap
 from org.boltlinux.buildbox.error import BBoxError
 
@@ -47,7 +47,9 @@ class BBoxTarget:
         target_dir = os.path.join(target_prefix, target_name)
         if os.path.exists(target_dir):
             if os.listdir(target_dir):
-                if not options.get("force"):
+                if options.get("force"):
+                    cls.delete(target_name, **options)
+                else:
                     raise BBoxError(
                         "found non-empty target directory at '{}', aborting."
                         .format(target_dir)
@@ -127,7 +129,7 @@ class BBoxTarget:
     #end function
 
     @classmethod
-    def delete(self, target_name, **options):
+    def delete(cls, target_name, **options):
         target_prefix = options.get(
             "target_prefix", BBoxTarget.target_prefix()
         )
@@ -146,7 +148,7 @@ class BBoxTarget:
         if proc.returncode != 0:
             raise BBoxError("failed to remove bind mounts.")
 
-        homedir = os.path.abspath(pwd.getpwuid(os.getuid()).pw_dir)
+        homedir = get_homedir()
 
         for subdir in ["dev", "proc", "sys", homedir.lstrip(os.sep)]:
             full_path = os.path.join(target_dir, subdir)
@@ -178,6 +180,6 @@ class BBoxTarget:
 
     @classmethod
     def target_prefix(cls):
-        return os.path.join(homedir(), ".bolt", "targets")
+        return os.path.join(get_homedir(), ".bolt", "targets")
 
 #end class
