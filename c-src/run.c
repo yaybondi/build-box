@@ -37,7 +37,7 @@ void bbox_run_usage()
         "Build Box NG Management Utility, Version %s                            \n"
         "Copyright (c) 2017-2020 Tobias Koch <tobias.koch@gmail.com>            \n"
         "                                                                       \n"
-        "Usage: build-box-do run [OPTIONS] <target> -- <command line to run>    \n"
+        "Usage: build-box-do run [OPTIONS] <target-name> -- <command>           \n"
         "                                                                       \n"
         "OPTIONS:                                                               \n"
         "                                                                       \n"

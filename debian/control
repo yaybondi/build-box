@@ -19,6 +19,6 @@ Description: utilities for managing Bolt OS build roots
  about the usual intricacies of cross-compliation.
  .
  This is achieved through a trick by which parts of the environment are emulated
- with Qemu, while other parts, such as the compiler and tools (GCC, Make, Perl,
+ with QEMU, while other parts, such as the compiler and tools (GCC, Make, Perl,
  Python, Tcl, ...), run at native speed.
 

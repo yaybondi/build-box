@@ -21,6 +21,9 @@ override_dh_auto_build:
 override_dh_auto_install:
 	(cd .build && install -m 0755 c-src/build-box-do ../bin)
 	dh_auto_install
+	install -m 0755 -d debian/build-box-utils/etc/bash_completion.d
+	install -m 0644 scripts/bash-completion.sh \
+		debian/build-box-utils/etc/bash_completion.d/
 
 override_dh_clean:
 	dh_auto_clean
