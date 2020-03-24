@@ -30,11 +30,9 @@ import pwd
 from org.boltlinux.buildbox.error import BBoxError
 
 def homedir():
-    home = os.environ.get("HOME")
-    if not home:
-        pw = pwd.getpwuid(os.geteuid())
-        if pw:
-            home = pw.pw_dir
+    pw = pwd.getpwuid(os.geteuid())
+    if pw:
+        home = pw.pw_dir
     if not home:
         raise BBoxError(
             "unable to determine user home directory."
