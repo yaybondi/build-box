@@ -133,6 +133,17 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
 
     bbox_path_join(&buf, sys_root, mount_point, &buf_len);
 
+    if(lstat(buf, &st) == -1) {
+        if(errno == ENOENT) {
+            free(buf);
+            return 0;
+        }
+        bbox_perror("umount", "could not stat '%s': %s.\n", buf,
+                strerror(errno));
+        free(buf);
+        return -1;
+    }
+
     /*
      * At this point, we have already checked that sys_root belongs to the user
      * who launched build box. Now we have to ensure that the given mountpoint
@@ -141,17 +152,6 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
     if(bbox_is_subdir_of(sys_root, buf) != 0) {
         bbox_perror("umount", "%s is not a subdirectory of %s.\n",
                 buf, sys_root);
-        free(buf);
-        return -1;
-    }
-
-    if(lstat(buf, &st) == -1) {
-        if(errno == ENOENT) {
-            free(buf);
-            return 0;
-        }
-        bbox_perror("umount", "could not stat '%s': %s.\n", buf,
-                strerror(errno));
         free(buf);
         return -1;
     }
