@@ -26,6 +26,7 @@
 import os
 import re
 import pwd
+import signal
 
 from org.boltlinux.buildbox.error import BBoxError
 
@@ -79,4 +80,23 @@ def target_for_machine(machine):
         return "s390x-linux-musl"
     if re.match(r"^x86[-_]64$", machine):
         return "x86_64-bolt-linux-musl"
+#end function
+
+def kill_chrooted_processes(chroot):
+    my_uid = os.getuid()
+    chroot = os.path.normpath(os.path.realpath(chroot))
+
+    for entry in os.listdir("/proc"):
+        try:
+            pid = int(entry)
+
+            proot = os.path.normpath(
+                os.path.realpath("/proc/{}/root".format(entry))
+            )
+
+            if chroot == proot:
+                os.kill(pid, signal.SIGKILL)
+        except (ValueError, OSError):
+            pass
+    #end for
 #end function

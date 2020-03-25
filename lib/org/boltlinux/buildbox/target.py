@@ -30,7 +30,8 @@ import shlex
 import subprocess
 import shutil
 
-from org.boltlinux.buildbox.utils import homedir as get_homedir
+import org.boltlinux.buildbox.utils as bboxutils
+
 from org.boltlinux.buildbox.bootstrap import BBoxBootstrap
 from org.boltlinux.buildbox.error import BBoxError
 
@@ -140,6 +141,8 @@ class BBoxTarget:
         if not os.path.isdir(target_dir):
             raise BBoxError("target '{}' not found.".format(target_name))
 
+        bboxutils.kill_chrooted_processes(target_dir)
+
         umount_cmd = shlex.split(
             "/usr/bin/build-box umount -t '{}' .".format(target_dir)
         )
@@ -148,7 +151,7 @@ class BBoxTarget:
         if proc.returncode != 0:
             raise BBoxError("failed to remove bind mounts.")
 
-        homedir = get_homedir()
+        homedir = bboxutils.homedir()
 
         for subdir in ["dev", "proc", "sys", homedir.lstrip(os.sep)]:
             full_path = os.path.join(target_dir, subdir)
@@ -180,6 +183,6 @@ class BBoxTarget:
 
     @classmethod
     def target_prefix(cls):
-        return os.path.join(get_homedir(), ".bolt", "targets")
+        return os.path.join(bboxutils.homedir(), ".bolt", "targets")
 
 #end class
