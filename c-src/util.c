@@ -801,15 +801,21 @@ int bbox_is_subdir_of(const char *path, const char *subdir)
 
     real_path = realpath(path, NULL);
     if(!real_path) {
-        bbox_perror("unable to normalize path %s: %s.\n",
-                path, strerror(errno));
+        bbox_perror(
+            "bbox_is_subdir_of",
+            "unable to normalize path %s: %s.\n",
+            path, strerror(errno)
+        );
         goto cleanup_and_exit;
     }
 
     real_subdir = realpath(subdir, NULL);
     if(!real_subdir) {
-        bbox_perror("unable to normalize path %s: %s.\n",
-                subdir, strerror(errno));
+        bbox_perror(
+            "bbox_is_subdir_of",
+            "unable to normalize path %s: %s.\n",
+            subdir, strerror(errno)
+        );
         goto cleanup_and_exit;
     }
 
