@@ -112,7 +112,7 @@ class BBoxCLI:
                     break
                 if case("-t", "--targets"):
                     options["target_prefix"] = os.path.normpath(
-                        os.path.abspath(v.strip())
+                        os.path.realpath(v.strip())
                     )
                     break
                 if case("--force"):
@@ -168,7 +168,7 @@ class BBoxCLI:
                     break
                 if case("-t", "--targets"):
                     options["target_prefix"] = os.path.normpath(
-                        os.path.abspath(v.strip())
+                        os.path.realpath(v.strip())
                     )
                     break
             #end for
@@ -216,7 +216,7 @@ class BBoxCLI:
                     break
                 if case("-t", "--targets"):
                     options["target_prefix"] = os.path.normpath(
-                        os.path.abspath(v.strip())
+                        os.path.realpath(v.strip())
                     )
                     break
             #end for
