@@ -27,6 +27,7 @@ import os
 import re
 import pwd
 import signal
+import time
 
 from org.boltlinux.buildbox.error import BBoxError
 
@@ -83,20 +84,31 @@ def target_for_machine(machine):
 #end function
 
 def kill_chrooted_processes(chroot):
-    my_uid = os.getuid()
     chroot = os.path.normpath(os.path.realpath(chroot))
 
     for entry in os.listdir("/proc"):
         try:
             pid = int(entry)
 
-            proot = os.path.normpath(
+            proc_root = os.path.normpath(
                 os.path.realpath("/proc/{}/root".format(entry))
             )
 
-            if chroot == proot:
-                os.kill(pid, signal.SIGKILL)
-        except (ValueError, OSError):
+            proc_entry = "/proc/{}".format(entry)
+
+            if chroot == proc_root:
+                os.kill(-pid, signal.SIGTERM)
+                for i in range(10):
+                    os.lstat(proc_entry)
+                    time.sleep(0.05 * 1.1**i)
+
+                os.kill(-pid, signal.SIGKILL)
+                for i in range(10):
+                    os.lstat(proc_entry)
+                    time.sleep(0.05 * 1.1**i)
+            #end if
+        except (ValueError, ProcessLookupError, PermissionError,
+                    FileNotFoundError):
             pass
     #end for
 #end function
