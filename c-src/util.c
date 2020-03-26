@@ -28,6 +28,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <pwd.h>
+#include <grp.h>
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <stdarg.h>
@@ -563,18 +565,80 @@ int bbox_run_command_capture(uid_t uid, const char *cmd, char * const argv[],
 
 void bbox_update_chroot_dynamic_config(const char *sys_root)
 {
-    char *file;
     char *buf = NULL;
     size_t buf_len = 0;
-    struct stat st;
+    FILE *outf = NULL;
+
+    /* Copy the password database. */
+
+    bbox_path_join(&buf, sys_root, "/etc/passwd", &buf_len);
+    outf = fopen(buf, "w+");
+
+    if(outf == NULL) {
+        bbox_perror("bbox_update_chroot_dynamic_config",
+            "failed to open '%s' for writing: %s\n", buf, strerror(errno));
+        goto cleanup_and_exit;
+    }
+
+    struct passwd *pwd = NULL;
+    while((pwd = getpwent()) != NULL) {
+        fprintf(
+            outf,
+            "%s:%s:%ld:%ld:%s:%s:%s\n",
+            pwd->pw_name,
+            pwd->pw_passwd,
+            (long) pwd->pw_uid,
+            (long) pwd->pw_gid,
+            pwd->pw_gecos,
+            pwd->pw_dir,
+            pwd->pw_shell
+        );
+    }
+
+    fclose(outf);
+
+    /* Copy the group database. */
+
+    bbox_path_join(&buf, sys_root, "/etc/group", &buf_len);
+    outf = fopen(buf, "w+");
+
+    if(outf == NULL) {
+        bbox_perror("bbox_update_chroot_dynamic_config",
+            "failed to open '%s' for writing: %s\n", buf, strerror(errno));
+        goto cleanup_and_exit;
+    }
+
+    struct group *grp = NULL;
+    while((grp = getgrent()) != NULL) {
+        fprintf(
+            outf,
+            "%s:%s:%ld:",
+            grp->gr_name,
+            grp->gr_passwd,
+            (long) grp->gr_gid
+        );
+
+        for(int i = 0; grp->gr_mem[i] != NULL; i++) {
+            fputs(grp->gr_mem[i], outf);
+            if(grp->gr_mem[i+1] != NULL)
+                fputc(',', outf);
+        }
+
+        fputc('\n', outf);
+    }
+
+    fclose(outf);
+
+    /* Copy other files. */
 
     char *file_list[] = {
-        "/etc/passwd",
-        "/etc/group",
         "/etc/resolv.conf",
         "/etc/hosts",
         NULL
     };
+
+    char *file;
+    struct stat st;
 
     for(int i = 0; file_list[i] != NULL; i++) {
         file = file_list[i];
@@ -585,6 +649,9 @@ void bbox_update_chroot_dynamic_config(const char *sys_root)
         bbox_path_join(&buf, sys_root, file, &buf_len);
         bbox_copy_file(file, buf);
     }
+
+cleanup_and_exit:
+    free(buf);
 }
 
 int bbox_lower_privileges()
