@@ -71,6 +71,7 @@ class BBoxCLI:
                  --force              Overwrite any existing target with the same name.
                  --repo-base <url>    Repository base URL up to and including the "repo"
                                       folder.
+                 --no-verify          Do not verify package list signatures.
                 """
             ))
         #end inline function
@@ -85,13 +86,16 @@ class BBoxCLI:
             "force":
                 False,
             "repo_base":
-                "http://archive.boltlinux.org/repo"
+                "http://archive.boltlinux.org/repo",
+            "do_verify":
+                True
         }
 
         try:
             opts, args = getopt.getopt(
                 args, "hr:a:t:", [
-                    "release=", "arch=", "targets=", "force", "repo-base="
+                    "release=", "arch=", "targets=", "force", "repo-base=",
+                    "no-verify"
                 ]
             )
         except getopt.GetoptError as e:
@@ -120,6 +124,9 @@ class BBoxCLI:
                     break
                 if case("--repo-base"):
                     options["repo_base"] = v.strip()
+                    break
+                if case("--no-verify"):
+                    options["do_verify"] = False
                     break
             #end for
         #end for

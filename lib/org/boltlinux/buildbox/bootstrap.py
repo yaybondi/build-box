@@ -41,13 +41,13 @@ OPKG_CONFIG_TEMPLATE = """\
 # OPTIONS
 ##############################################################################
 
-{opt_check_sig}
-
 option cache_dir /.pkg-cache
 option signature_type usign
 option no_install_recommends
 option force_removal_of_dependent_packages
 option force_postinstall
+
+{opt_check_sig}
 
 ##############################################################################
 # FEEDS
@@ -82,16 +82,22 @@ TOOLS_TYPE=x86_64-tools-linux-musl
 
 class BBoxBootstrap:
 
-    def __init__(self, release, arch, libc="musl"):
+    def __init__(self, release, arch, libc="musl", do_verify=True):
         if not valid_arch(arch):
             raise BBoxError("unknown target architecture: {}".format(arch))
 
         self._release = release
         self._arch = arch
         self._libc = libc
+        self._do_verify = do_verify
     #end function
 
     def bootstrap(self, target_dir, specfile, force=False, **options):
+        if self._do_verify:
+            opt_check_sig = "option check_signature"
+        else:
+            opt_check_sig = ""
+
         context = {
             "release": self._release,
             "libc": self._libc,
@@ -99,7 +105,7 @@ class BBoxBootstrap:
             "target_id": os.path.basename(target_dir),
             "machine": self._arch,
             "target_type": target_for_machine(self._arch),
-            "opt_check_sig": "",
+            "opt_check_sig": opt_check_sig,
             "repo_base": options.get("repo_base")
         }
 

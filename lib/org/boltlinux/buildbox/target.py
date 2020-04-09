@@ -75,6 +75,7 @@ class BBoxTarget:
         bootstrapper = BBoxBootstrap(
             options.get("release", "stable"),
             options.get("arch", "x86_64"),
+            do_verify=options.get("do_verify", True)
         )
 
         bootstrapper.bootstrap(
