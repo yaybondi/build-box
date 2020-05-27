@@ -82,7 +82,7 @@ void bbox_sanitize_environment()
         name = strndup(start, end - start);
 
         if(!name) {
-            bbox_perror("bbox_sanitize_environment", "out of memory!\n");
+            bbox_perror("bbox_sanitize_environment", "out of memory?\n");
             abort();
         }
 
@@ -122,13 +122,13 @@ int bbox_copy_file(const char *src, const char *dst)
 
     dst_tmp1 = strdup(dst);
     if(dst_tmp1 == NULL) {
-        bbox_perror("bbox_copy_file", "out of memory!\n");
+        bbox_perror("bbox_copy_file", "out of memory?\n");
         abort();
     }
 
     dst_tmp2 = strdup(dst);
     if(dst_tmp2 == NULL) {
-        bbox_perror("bbox_copy_file", "out of memory!\n");
+        bbox_perror("bbox_copy_file", "out of memory?\n");
         abort();
     }
 
@@ -139,7 +139,7 @@ int bbox_copy_file(const char *src, const char *dst)
     tmp_dst      = malloc(pathname_len + filename_len + 3);
 
     if(tmp_dst == NULL) {
-        bbox_perror("bbox_copy_file", "out of memory!\n");
+        bbox_perror("bbox_copy_file", "out of memory?\n");
         abort();
     }
 
@@ -486,6 +486,22 @@ int bbox_run_command_capture(uid_t uid, const char *cmd, char * const argv[],
         return -1;
     }
 
+    /*
+     * It is important that we don't leave the buffer uninitialized, if the
+     * command won't produce any output.
+     */
+    if(*out_buf_size == 0) {
+        *out_buf_size = 256;
+        *out_buf = malloc(*out_buf_size);
+
+        if(!*out_buf) {
+            bbox_perror("bbox_run_command_capture", "out of memory!\n");
+            abort();
+        }
+
+        (*out_buf)[0] = '\0';
+    }
+
     if((pid = fork()) == -1) {
         bbox_perror("bbox_run_command_capture",
                 "failed to start subprocess: %s.\n",
@@ -521,35 +537,35 @@ int bbox_run_command_capture(uid_t uid, const char *cmd, char * const argv[],
             *out_buf = realloc(*out_buf, *out_buf_size);
 
             if(!*out_buf) {
-                bbox_perror("bbox_run_command_capture",
-                        "out of memory? %s.\n",
-                        strerror(errno));
-                return -1;
+                bbox_perror("bbox_run_command_capture", "out of memory!\n");
+                break;
             }
         }
 
         memcpy(*out_buf + total_read, buf, bytes_read);
         total_read += bytes_read;
         (*out_buf)[total_read] = '\0';
+
+        /* 4MB should be plenty for our use cases. */
+        if(total_read > 4 * 1024 * 1024)
+            break;
     }
 
     int done = 0;
 
-    if(*out_buf) {
-        // rtrim string.
-        while(!done) {
-            switch((*out_buf)[total_read]) {
-                case '\r':
-                case '\n':
-                case ' ':
-                case 127:
-                case '\0':
-                    (*out_buf)[total_read--] = '\0';
-                    break;
-                default:
-                    done = 1;
-                    break;
-            }
+    // rtrim string.
+    while(!done && total_read >= 0) {
+        switch((*out_buf)[total_read]) {
+            case '\r':
+            case '\n':
+            case ' ':
+            case 127:
+            case '\0':
+                (*out_buf)[total_read--] = '\0';
+                break;
+            default:
+                done = 1;
+                break;
         }
     }
 
