@@ -86,7 +86,7 @@ class BBoxCLI:
             "force":
                 False,
             "repo_base":
-                "http://archive.boltlinux.org/repo",
+                "http://archive.boltlinux.org",
             "do_verify":
                 True
         }

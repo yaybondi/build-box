@@ -53,10 +53,10 @@ option force_postinstall
 # FEEDS
 ##############################################################################
 
-src/gz main {repo_base}/{release}/core/{arch}/{libc}/main
-src/gz main-debug {repo_base}/{release}/core/{arch}/{libc}/main-debug
-src/gz tools {repo_base}/{release}/core/{arch}/{libc}/tools
-src/gz tools-debug {repo_base}/{release}/core/{arch}/{libc}/tools-debug
+src/gz main {repo_base}/dists/{release}/core/{arch}/{libc}/main
+src/gz main-debug {repo_base}/dists/{release}/core/{arch}/{libc}/main-debug
+src/gz tools {repo_base}/dists/{release}/core/{arch}/{libc}/tools
+src/gz tools-debug {repo_base}/dists/{release}/core/{arch}/{libc}/tools-debug
 
 ##############################################################################
 # ARCHES
