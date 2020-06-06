@@ -124,7 +124,6 @@ int bbox_run(int argc, char * const argv[])
 
     const char *home_dir = bbox_config_get_home_dir(conf);
 
-    /* illusion: getopt itself is not thread-safe, probably. */
     if((non_optind = bbox_run_getopt(conf, argc, argv)) < 0) {
         bbox_config_free(conf);
 

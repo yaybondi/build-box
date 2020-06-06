@@ -127,7 +127,6 @@ int bbox_login(int argc, char * const argv[])
         return BBOX_ERR_RUNTIME;
     }
 
-    /* illusion: getopt itself is not thread-safe, probably. */
     if((non_optind = bbox_login_getopt(conf, argc, argv)) < 0) {
         bbox_config_free(conf);
 
