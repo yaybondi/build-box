@@ -155,7 +155,7 @@ int bbox_copy_file(const char *src, const char *dst)
         goto cleanup_and_exit;
     }
 
-    if((out_fd = creat(dst, src_st.st_mode)) == -1) {
+    if((out_fd = creat(tmp_dst, src_st.st_mode)) == -1) {
         bbox_perror("bbox_copy_file", "failed to open '%s' for writing: %s\n",
                 dst, strerror(errno));
         goto cleanup_and_exit;
@@ -197,6 +197,14 @@ int bbox_copy_file(const char *src, const char *dst)
     rval = 0;
 
 cleanup_and_exit:
+
+    if(lstat(tmp_dst, &dst_st) == 0) {
+        if(rval == 0) {
+            rename(tmp_dst, dst);
+        } else {
+            unlink(tmp_dst);
+        }
+    }
 
     if(in_fd != -1)
         close(in_fd);
