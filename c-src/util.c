@@ -652,9 +652,11 @@ void bbox_update_chroot_dynamic_config(const char *sys_root)
             if(grp->gr_mem[i+1] != NULL) {
                 dprintf(out_fd, "%s,", grp->gr_mem[i]);
             } else {
-                dprintf(out_fd, "%s\n", grp->gr_mem[i]);
+                dprintf(out_fd, "%s", grp->gr_mem[i]);
             }
         }
+
+        dprintf(out_fd, "\n");
     }
 
     close(out_fd);
