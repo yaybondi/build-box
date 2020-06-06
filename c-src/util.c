@@ -96,14 +96,9 @@ int bbox_copy_file(const char *src, const char *dst)
 {
     struct stat src_st, dst_st;
     char buf[BBOX_COPY_BUF_SIZE];
-    char *dst_tmp1 = NULL;
-    char *dst_tmp2 = NULL;
-    char *filename = NULL;
-    char *pathname = NULL;
-    char *tmp_dst  = NULL;
-    char *ptr      = NULL;
-    size_t pathname_len = 0;
-    size_t filename_len = 0;
+    char *tmp_dst = NULL;
+    size_t dst_len = strlen(dst);
+    char *ptr = NULL;
     int in_fd = -1, out_fd = -1, rval = -1;
     int num_bytes_read, num_bytes_written;
 
@@ -120,44 +115,27 @@ int bbox_copy_file(const char *src, const char *dst)
         }
     }
 
-    dst_tmp1 = strdup(dst);
-    if(dst_tmp1 == NULL) {
+    if((tmp_dst = malloc(strlen(dst) + strlen("-XXXXXX") + 1)) == NULL) {
         bbox_perror("bbox_copy_file", "out of memory?\n");
         abort();
     }
 
-    dst_tmp2 = strdup(dst);
-    if(dst_tmp2 == NULL) {
-        bbox_perror("bbox_copy_file", "out of memory?\n");
-        abort();
+    strncpy(tmp_dst, dst, dst_len);
+    strncpy(tmp_dst + dst_len, "-XXXXXX", 8);
+
+    if((out_fd = mkstemp(tmp_dst)) == -1) {
+        bbox_perror(
+            "bbox_copy_file",
+            "failed to open temporary file '%s' for writing: %s\n",
+            tmp_dst, strerror(errno)
+        );
+        goto cleanup_and_exit;
     }
-
-    filename     = basename(dst_tmp1);
-    filename_len = strlen(filename);
-    pathname     = dirname(dst_tmp2);
-    pathname_len = strlen(pathname);
-    tmp_dst      = malloc(pathname_len + filename_len + 3);
-
-    if(tmp_dst == NULL) {
-        bbox_perror("bbox_copy_file", "out of memory?\n");
-        abort();
-    }
-
-    strncpy(tmp_dst, pathname, pathname_len);
-    tmp_dst[pathname_len + 0] = '/';
-    tmp_dst[pathname_len + 1] = '.';
-    strncpy(tmp_dst + pathname_len + 2, filename, filename_len);
-    tmp_dst[pathname_len + 2 + filename_len] = '\0';
+    fchmod(out_fd, src_st.st_mode);
 
     if((in_fd = open(src, O_RDONLY)) == -1) {
         bbox_perror("bbox_copy_file", "failed to open '%s' for reading: %s\n",
                 src, strerror(errno));
-        goto cleanup_and_exit;
-    }
-
-    if((out_fd = creat(tmp_dst, src_st.st_mode)) == -1) {
-        bbox_perror("bbox_copy_file", "failed to open '%s' for writing: %s\n",
-                dst, strerror(errno));
         goto cleanup_and_exit;
     }
 
@@ -198,6 +176,11 @@ int bbox_copy_file(const char *src, const char *dst)
 
 cleanup_and_exit:
 
+    if(in_fd != -1)
+        close(in_fd);
+    if(out_fd != -1)
+        close(out_fd);
+
     if(lstat(tmp_dst, &dst_st) == 0) {
         if(rval == 0) {
             rename(tmp_dst, dst);
@@ -206,15 +189,7 @@ cleanup_and_exit:
         }
     }
 
-    if(in_fd != -1)
-        close(in_fd);
-    if(out_fd != -1)
-        close(out_fd);
-
-    free(dst_tmp1);
-    free(dst_tmp2);
     free(tmp_dst);
-
     return rval;
 }
 
@@ -589,25 +564,41 @@ int bbox_run_command_capture(uid_t uid, const char *cmd, char * const argv[],
 
 void bbox_update_chroot_dynamic_config(const char *sys_root)
 {
-    char *buf = NULL;
-    size_t buf_len = 0;
-    FILE *outf = NULL;
+    struct stat st;
+    char *buf1 = NULL;
+    char *buf2 = NULL;
+    size_t buf1_len = 0;
+    size_t buf2_len = 0;
+    int out_fd = -1;
 
     /* Copy the password database. */
 
-    bbox_path_join(&buf, sys_root, "/etc/passwd", &buf_len);
-    outf = fopen(buf, "w+");
-
-    if(outf == NULL) {
-        bbox_perror("bbox_update_chroot_dynamic_config",
-            "failed to open '%s' for writing: %s\n", buf, strerror(errno));
+    if(lstat("/etc/passwd", &st) == -1) {
+        bbox_perror(
+            "bbox_update_chroot_dynamic_config",
+            "failed to stat '/etc/passwd': %s\n",
+            strerror(errno)
+        );
         goto cleanup_and_exit;
     }
 
+    bbox_path_join(&buf1, sys_root, "/etc/passwd-XXXXXX", &buf1_len);
+    bbox_path_join(&buf2, sys_root, "/etc/passwd", &buf2_len);
+
+    if((out_fd = mkstemp(buf1)) == -1) {
+        bbox_perror(
+            "bbox_update_chroot_dynamic_config",
+            "failed to open temporary file '%s' for writing: %s\n",
+            buf1, strerror(errno)
+        );
+        goto cleanup_and_exit;
+    }
+    fchmod(out_fd, st.st_mode);
+
     struct passwd *pwd = NULL;
     while((pwd = getpwent()) != NULL) {
-        fprintf(
-            outf,
+        dprintf(
+            out_fd,
             "%s:%s:%ld:%ld:%s:%s:%s\n",
             pwd->pw_name,
             pwd->pw_passwd,
@@ -619,23 +610,38 @@ void bbox_update_chroot_dynamic_config(const char *sys_root)
         );
     }
 
-    fclose(outf);
+    close(out_fd);
+    out_fd = -1;
+    rename(buf1, buf2);
 
     /* Copy the group database. */
 
-    bbox_path_join(&buf, sys_root, "/etc/group", &buf_len);
-    outf = fopen(buf, "w+");
-
-    if(outf == NULL) {
-        bbox_perror("bbox_update_chroot_dynamic_config",
-            "failed to open '%s' for writing: %s\n", buf, strerror(errno));
+    if(lstat("/etc/group", &st) == -1) {
+        bbox_perror(
+            "bbox_update_chroot_dynamic_config",
+            "failed to stat '/etc/group': %s\n",
+            strerror(errno)
+        );
         goto cleanup_and_exit;
     }
 
+    bbox_path_join(&buf1, sys_root, "/etc/group-XXXXXX", &buf1_len);
+    bbox_path_join(&buf2, sys_root, "/etc/group", &buf2_len);
+
+    if((out_fd = mkstemp(buf1)) == -1) {
+        bbox_perror(
+            "bbox_update_chroot_dynamic_config",
+            "failed to open temporary file '%s' for writing: %s\n",
+            buf1, strerror(errno)
+        );
+        goto cleanup_and_exit;
+    }
+    fchmod(out_fd, st.st_mode);
+
     struct group *grp = NULL;
     while((grp = getgrent()) != NULL) {
-        fprintf(
-            outf,
+        dprintf(
+            out_fd,
             "%s:%s:%ld:",
             grp->gr_name,
             grp->gr_passwd,
@@ -643,15 +649,17 @@ void bbox_update_chroot_dynamic_config(const char *sys_root)
         );
 
         for(int i = 0; grp->gr_mem[i] != NULL; i++) {
-            fputs(grp->gr_mem[i], outf);
-            if(grp->gr_mem[i+1] != NULL)
-                fputc(',', outf);
+            if(grp->gr_mem[i+1] != NULL) {
+                dprintf(out_fd, "%s,", grp->gr_mem[i]);
+            } else {
+                dprintf(out_fd, "%s\n", grp->gr_mem[i]);
+            }
         }
-
-        fputc('\n', outf);
     }
 
-    fclose(outf);
+    close(out_fd);
+    out_fd = -1;
+    rename(buf1, buf2);
 
     /* Copy other files. */
 
@@ -661,21 +669,22 @@ void bbox_update_chroot_dynamic_config(const char *sys_root)
         NULL
     };
 
-    char *file;
-    struct stat st;
-
     for(int i = 0; file_list[i] != NULL; i++) {
-        file = file_list[i];
+        char *file = file_list[i];
 
         if(lstat(file, &st) == -1)
             continue;
 
-        bbox_path_join(&buf, sys_root, file, &buf_len);
-        bbox_copy_file(file, buf);
+        bbox_path_join(&buf1, sys_root, file, &buf1_len);
+        bbox_copy_file(file, buf1);
     }
 
 cleanup_and_exit:
-    free(buf);
+    if(out_fd != -1)
+        close(out_fd);
+
+    free(buf1);
+    free(buf2);
 }
 
 int bbox_lower_privileges()
