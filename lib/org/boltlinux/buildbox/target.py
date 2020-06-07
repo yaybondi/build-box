@@ -78,9 +78,17 @@ class BBoxTarget:
             do_verify=options.get("do_verify", True)
         )
 
-        bootstrapper.bootstrap(
-            target_dir, target_spec, **options
-        )
+        try:
+            bootstrapper.bootstrap(
+                target_dir, target_spec, **options
+            )
+        except Exception:
+            try:
+                cls.delete(target_name, **options)
+            except:
+                pass
+            raise
+        #end try
     #end function
 
     @classmethod
