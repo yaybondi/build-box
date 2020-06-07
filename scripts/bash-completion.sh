@@ -110,32 +110,36 @@ _build_box_arg_complete() {
         '<dir>')
             _cd
             ;;
+        '<spec>')
+            compopt -o default
+            COMPREPLY=()
+            ;;
     esac
 }
 
 _build_box_opt_complete() {
-    local _build_box_cmd="${COMP_WORDS[0]} ${COMP_WORDS[1]}"
+    local _opts="-h -help"
 
-    COMPREPLY=(
-        $(
-            compgen -W "$(
-                $_build_box_cmd --help | \
-                    grep -E '^ -' | \
-                    sed -E -e 's/^\s*//g' | \
-                    cut -d' ' -f1 | \
-                    sed 's/,/ /g'
-            )" -- ${COMP_WORDS[COMP_CWORD]}
-        )
-    )
+    case "${COMP_WORDS[1]}" in
+        create)
+            _opts="$_opts -r --release -a --arch -t --targets --force --repo-base --no-verify"
+            ;;
+        delete|list|mount)
+            _opts="$_opts -t --targets"
+            ;;
+        login|run)
+            _opts="$_opts -t --targets -n --no-mount --no-file-copy"
+            ;;
+        mount|umount)
+            _opts="$_opts -t --targets -m --mount"
+            ;;
+    esac
+
+    COMPREPLY=($(compgen -W "$_opts" -- ${COMP_WORDS[COMP_CWORD]}))
 }
 
 _build_box_complete() {
-    local _valid_commands=$(
-        ${COMP_WORDS[0]} --help | \
-            grep -E '^  \w' | \
-            sed -E 's/^\s*//g' | \
-            cut -d' ' -f1
-    )
+    local _valid_commands="create delete list login mount umount run"
 
     case "$COMP_CWORD" in
         1)
