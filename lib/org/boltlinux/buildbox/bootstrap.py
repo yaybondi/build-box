@@ -130,7 +130,8 @@ class BBoxBootstrap:
 
     def package_cache(self):
         return os.path.join(
-            homedir(), ".bolt", "cache", "binaries", self._release, self._arch
+            homedir(), ".bolt", "cache", "dists", self._release,
+                self._arch, self._libc
         )
     #end function
 
