@@ -45,6 +45,12 @@ class BBoxTarget:
         if not os.path.isdir(target_prefix):
             os.makedirs(target_prefix)
 
+        if not re.match(r"^[-_a-zA-Z0-9.]+$", target_name):
+            raise BBoxError(
+                "the target name must only consist of characters "
+                "[-_a-zA-Z0-9.]"
+            )
+
         target_dir = os.path.join(target_prefix, target_name)
         if os.path.exists(target_dir):
             if os.listdir(target_dir):
