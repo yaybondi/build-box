@@ -202,6 +202,9 @@ class BBoxBootstrap:
         active_batch = []
         active_mode = None
 
+        if not os.path.isfile(specfile):
+            raise BBoxError("'{}' is not a regular file.".format(specfile))
+
         with open(specfile, "r", encoding="utf-8") as f:
             lineno = 0
 
