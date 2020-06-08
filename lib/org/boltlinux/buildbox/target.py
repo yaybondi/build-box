@@ -47,8 +47,8 @@ class BBoxTarget:
 
         if not re.match(r"^[-_a-zA-Z0-9.]+$", target_name):
             raise BBoxError(
-                "the target name must only consist of characters "
-                "[-_a-zA-Z0-9.]"
+                "the target name must consist only of characters "
+                "matching [-_a-zA-Z0-9.]"
             )
 
         target_dir = os.path.join(target_prefix, target_name)
