@@ -82,7 +82,8 @@ TOOLS_TYPE=x86_64-tools-linux-musl
 
 class BBoxBootstrap:
 
-    def __init__(self, release, arch, libc="musl", do_verify=True):
+    def __init__(self, release, arch, libc="musl", do_verify=True,
+            cache_dir=None):
         if not valid_arch(arch):
             raise BBoxError("unknown target architecture: {}".format(arch))
 
@@ -90,6 +91,11 @@ class BBoxBootstrap:
         self._arch = arch
         self._libc = libc
         self._do_verify = do_verify
+
+        if cache_dir:
+            self._cache_dir = cache_dir
+        else:
+            self._cache_dir = os.path.join(homedir(), ".bolt", "cache")
     #end function
 
     def bootstrap(self, target_dir, specfile, force=False, **options):
@@ -123,14 +129,13 @@ class BBoxBootstrap:
             opkg_conf = os.path.join(dirname, "opkg.conf")
             with open(opkg_conf, "w+", encoding="utf-8") as f:
                 f.write(OPKG_CONFIG_TEMPLATE.format(**context))
-
             self._prepare_target(opkg_conf, target_dir, batches, **context)
         #end with
     #end function
 
     def package_cache(self):
         return os.path.join(
-            homedir(), ".bolt", "cache", "dists", self._release,
+            self._cache_dir, "bolt", "dists", self._release,
                 self._arch, self._libc
         )
     #end function
