@@ -78,13 +78,13 @@ class BBoxTarget:
         if proc.returncode != 0:
             raise BBoxError("failed to bind mount /dev.")
 
-        bootstrapper = BBoxBootstrap(
-            options.get("release", "stable"),
-            options.get("arch", "x86_64"),
-            do_verify=options.get("do_verify", True)
-        )
-
         try:
+            bootstrapper = BBoxBootstrap(
+                options.get("release", "stable"),
+                options.get("arch", "x86_64"),
+                do_verify=options.get("do_verify", True),
+                cache_dir=options.get("cache_dir")
+            )
             bootstrapper.bootstrap(
                 target_dir, target_spec, **options
             )
