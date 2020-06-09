@@ -8,7 +8,6 @@ Standards-Version: 3.9.8
 Package: build-box-utils
 Architecture: any
 Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends},
- bolt-package-utils (>= 1.1.0),
  qemu-user-static,
  mount,
  fakeroot,
