@@ -83,7 +83,7 @@ if __name__ == "__main__":
         if command in ["login", "mount", "umount", "run"]:
             bbox_do("build-box-do", *sys.argv[1:])
         elif command in ["create", "list", "delete"]:
-            BBoxCLI().run(*sys.argv[1:])
+            BBoxCLI().execute_command(*sys.argv[1:])
         elif command in ["--help", "-h"]:
             print_usage()
         else:

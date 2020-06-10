@@ -28,7 +28,7 @@ import sys
 import getopt
 import textwrap
 
-from org.boltlinux.buildbox.utils import switch
+from org.boltlinux.buildbox.utils import homedir, switch
 from org.boltlinux.buildbox.target import BBoxTarget
 from org.boltlinux.buildbox.error import BBoxError
 
@@ -37,7 +37,7 @@ EXIT_ERROR = 1
 
 class BBoxCLI:
 
-    def run(self, *args):
+    def execute_command(self, *args):
         command = args[0]
 
         for case in switch(command):
@@ -77,8 +77,10 @@ class BBoxCLI:
         #end inline function
 
         options = {
+            "cache_dir":
+                self._get_cache_dir(),
             "release":
-                "stable",
+                self._get_default_release(),
             "arch":
                 "x86_64",
             "target_prefix":
@@ -236,5 +238,13 @@ class BBoxCLI:
         target_name = args[0]
         BBoxTarget.delete(target_name, **options)
     #end function
+
+    # HELPER
+
+    def _get_cache_dir(self):
+        return os.path.join(homedir(), ".bolt", "cache")
+
+    def _get_default_release(self):
+        return "stable"
 
 #end class
