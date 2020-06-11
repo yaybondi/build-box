@@ -169,7 +169,7 @@ _build_box_complete() {
         1)
             COMPREPLY=(
                 $(
-                    compgen -W "$_valid_commands -h --help" \
+                    compgen -W "$_valid_commands" \
                         -- ${COMP_WORDS[COMP_CWORD]}
                 )
             )
