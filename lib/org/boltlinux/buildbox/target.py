@@ -73,7 +73,6 @@ class BBoxTarget:
         mount_cmd = shlex.split(
             "/usr/bin/build-box mount -m dev -t '{}' .".format(target_dir)
         )
-
         proc = subprocess.run(mount_cmd)
         if proc.returncode != 0:
             raise BBoxError("failed to bind mount /dev.")
@@ -94,6 +93,11 @@ class BBoxTarget:
             except:
                 pass
             raise
+        else:
+            umount_cmd = shlex.split(
+                "/usr/bin/build-box umount -t '{}' .".format(target_dir)
+            )
+            subprocess.run(umount_cmd)
         #end try
     #end function
 
