@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <stdio.h>
@@ -49,6 +50,16 @@ void bbox_main_usage()
 
 int main(int argc, char *argv[])
 {
+    /*
+     * Build Box Do is not meant to be called directly, it should always be
+     * invoked through the Build Box Python wrapper.
+     */
+    char *build_box_wrapper_token = getenv("BUILD_BOX_WRAPPER_A883DAFC");
+    if(build_box_wrapper_token == NULL) {
+        bbox_perror("main", "build-box-do should not be invoked directly.\n");
+        return BBOX_ERR_INVOCATION;
+    }
+
     /*
      * Build Box has been designed to give regular users just enough privileges
      * to work with "build boxed" chroots. Possibly, it would work fine for
