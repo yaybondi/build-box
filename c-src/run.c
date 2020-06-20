@@ -95,10 +95,10 @@ int bbox_run_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                 bbox_config_disable_file_updates(conf);
                 break;
             case '?':
-                bbox_perror("login", "unknown option '%s'.\n", argv[optind-1]);
+                bbox_perror("run", "unknown option '%s'.\n", argv[optind-1]);
                 return -2;
             case ':':
-                bbox_perror("login", "option '%s' needs an argument.\n",
+                bbox_perror("run", "option '%s' needs an argument.\n",
                         argv[optind-1]);
                 return -2;
             default:
@@ -118,7 +118,7 @@ int bbox_run(int argc, char * const argv[])
 
     bbox_conf_t *conf = bbox_config_new();
     if(!conf) {
-        bbox_perror("login", "creating configuration context failed.");
+        bbox_perror("run", "creating configuration context failed.");
         return BBOX_ERR_RUNTIME;
     }
 
@@ -136,7 +136,7 @@ int bbox_run(int argc, char * const argv[])
     }
 
     if(non_optind >= argc) {
-        bbox_perror("login", "no target specified.\n");
+        bbox_perror("run", "no target specified.\n");
         bbox_config_free(conf);
         return BBOX_ERR_INVOCATION;
     }
