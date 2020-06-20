@@ -26,6 +26,7 @@
 import os
 import re
 import pwd
+import sys
 import signal
 import time
 
@@ -111,4 +112,16 @@ def kill_chrooted_processes(chroot):
                     FileNotFoundError):
             pass
     #end for
+#end function
+
+def bbox_do(*args):
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    try:
+        os.execvp("build-box-do", args)
+    except OSError as e:
+        sys.stderr.write("build-box: error calling build-box-do: %s.\n" % str(e))
+        sys.exit(BBOX_ERR_RUNTIME)
+    #end try
 #end function
