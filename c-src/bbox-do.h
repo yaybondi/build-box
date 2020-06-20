@@ -73,6 +73,7 @@ int bbox_isdir_and_owned_by(const char *module, const char *dir, uid_t uid);
 int bbox_sysroot_mkdir_p(const char *module, const char *sysroot,
         const char *path);
 int bbox_is_subdir_of(const char *path, const char *subdir);
+int bbox_try_fix_pkg_cache_symlink(char *module);
 
 /* Mounting */
 

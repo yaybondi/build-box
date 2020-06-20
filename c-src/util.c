@@ -318,6 +318,9 @@ int bbox_login_sh_chrooted(char *sys_root, char *home_dir)
     if(bbox_drop_privileges() == -1)
         _exit(BBOX_ERR_RUNTIME);
 
+    /* Do this while we're at the fs root. */
+    bbox_try_fix_pkg_cache_symlink("");
+
     if(home_dir)
         if(chdir(home_dir) == -1);
 
@@ -404,6 +407,9 @@ int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
 
         if(bbox_drop_privileges() == -1)
             _exit(BBOX_ERR_RUNTIME);
+
+        /* Do this while we're at the fs root. */
+        bbox_try_fix_pkg_cache_symlink("");
 
         /* this is non-critical. */
         if(home_dir)
@@ -942,5 +948,56 @@ cleanup_and_exit:
     free(real_subdir);
     free(buf);
 
+    return rval;
+}
+
+int bbox_try_fix_pkg_cache_symlink(char *module) {
+    int rval = 0;
+    struct stat link_st;
+    char *out_buf = NULL;
+    size_t out_buf_len = 0;
+
+    if(lstat("/.pkg-cache", &link_st) == -1) {
+        return symlink("/var/cache/opkg", "/.pkg-cache");
+    }
+
+    size_t bufsize = link_st.st_size ? link_st.st_size + 1 : PATH_MAX;
+    char *buf = malloc(bufsize);
+
+    if(buf == NULL) {
+        bbox_perror(module, "out of memory?\n");
+        abort();
+    }
+
+    int nbytes = readlink("/.pkg-cache", buf, bufsize);
+
+    if(nbytes < 0 || nbytes >= bufsize) {
+        rval = -1;
+        goto cleanup_and_exit;
+    }
+
+    buf[bufsize - 1] = '\0';
+
+    char * const argv[] = {"mkdir", "-p", (char*const) buf, NULL};
+    if(bbox_run_command_capture(getuid(), "mkdir", argv, &out_buf,
+            &out_buf_len) != 0)
+    {
+        if(out_buf) {
+            bbox_perror(
+                module,
+                "warning: failed to fix /.pkg-cache symlink: %s\n",
+                out_buf
+            );
+        } else {
+            bbox_perror(
+                module, "warning: failed to fix /.pkg-cache symlink.\n"
+            );
+        }
+    }
+
+cleanup_and_exit:
+
+    free(buf);
+    free(out_buf);
     return rval;
 }
