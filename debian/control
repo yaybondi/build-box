@@ -2,25 +2,21 @@ Source: build-box-utils
 Section: devel
 Priority: optional
 Maintainer: Tobias Koch <tobias.koch@gmail.com>
-Build-Depends: debhelper (>= 9), dh-python, python3-all, python3-setuptools
+Build-Depends:
+ debhelper (>= 10),
+ dh-python,
+ python3-all,
+ python3-setuptools
 Standards-Version: 3.9.8
 
-Package: build-box-utils
+Package: build-box-ng
 Architecture: any
 Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends},
- fakeroot,
  mount,
  opkg,
- python3-bolt-package,
- qemu-user-static,
+ qemu-user-static-bolt,
  usign
-Description: utilities for managing Bolt OS build roots
- Build Box NG is a collection of tools for bootstrapping and working with Bolt
- OS build roots. It allows you to enter target root file systems and
- cross-compile software packages directly without having to worry about the
- usual intricacies of cross-compliation.
- .
- This is achieved through a trick by which parts of the environment are emulated
- with QEMU, while other parts, such as the compiler and tools (GCC, Make, Perl,
- Python, Tcl, ...), run at native speed.
-
+Description: management utility for Bolt Linux build sandboxes
+ BuildBox manages hybrid build sandboxes in which an emulated target stack runs
+ in tandem with an identical native software stack, giving you the speed of a
+ cross toolchain with the look and feel of a native build environment. 
