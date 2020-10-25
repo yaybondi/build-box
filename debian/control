@@ -12,6 +12,7 @@ Standards-Version: 3.9.8
 Package: build-box-ng
 Architecture: any
 Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends},
+ bolt-repo-keys,
  mount,
  opkg,
  qemu-user-static-bolt,
