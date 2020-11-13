@@ -114,7 +114,10 @@ class BBoxCLI:
                     options["release"] = v.strip()
                     break
                 if case("-a", "--arch"):
-                    options["arch"] = v.strip()
+                    arch = v.strip()
+                    if arch == "x86-64":
+                        arch = "x86_64"
+                    options["arch"] = arch
                     break
                 if case("-t", "--targets"):
                     options["target_prefix"] = os.path.normpath(
