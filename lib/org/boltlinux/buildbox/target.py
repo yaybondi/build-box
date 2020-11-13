@@ -29,6 +29,7 @@ import re
 import shlex
 import subprocess
 import shutil
+import signal
 import sys
 
 import org.boltlinux.buildbox.utils as bboxutils
@@ -90,7 +91,9 @@ class BBoxTarget:
             )
         except (KeyboardInterrupt, Exception):
             try:
+                old_sig_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
                 cls.delete(target_name, **options)
+                signal.signal(signal.SIGINT, old_sig_handler)
             except Exception:
                 pass
             raise
@@ -166,7 +169,6 @@ class BBoxTarget:
         umount_cmd = shlex.split(
             "{} umount -t '{}' .".format(sys.argv[0], target_dir)
         )
-
         proc = subprocess.run(umount_cmd)
         if proc.returncode != 0:
             raise BBoxError("failed to remove bind mounts.")
@@ -198,7 +200,9 @@ class BBoxTarget:
             #end if
         #end for
 
+        old_sig_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
         shutil.rmtree(target_dir)
+        signal.signal(signal.SIGINT, old_sig_handler)
     #end function
 
     @classmethod
