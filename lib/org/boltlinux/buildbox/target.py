@@ -29,6 +29,7 @@ import re
 import shlex
 import subprocess
 import shutil
+import sys
 
 import org.boltlinux.buildbox.utils as bboxutils
 
@@ -71,7 +72,7 @@ class BBoxTarget:
             os.makedirs(dev_dir)
 
         mount_cmd = shlex.split(
-            "/usr/bin/build-box mount -m dev -t '{}' .".format(target_dir)
+            "{} mount -m dev -t '{}' .".format(sys.argv[0], target_dir)
         )
         proc = subprocess.run(mount_cmd)
         if proc.returncode != 0:
@@ -95,7 +96,7 @@ class BBoxTarget:
             raise
         else:
             umount_cmd = shlex.split(
-                "/usr/bin/build-box umount -t '{}' .".format(target_dir)
+                "{} umount -t '{}' .".format(sys.argv[0], target_dir)
             )
             subprocess.run(umount_cmd)
         #end try
@@ -163,7 +164,7 @@ class BBoxTarget:
         bboxutils.kill_chrooted_processes(target_dir)
 
         umount_cmd = shlex.split(
-            "/usr/bin/build-box umount -t '{}' .".format(target_dir)
+            "{} umount -t '{}' .".format(sys.argv[0], target_dir)
         )
 
         proc = subprocess.run(umount_cmd)
