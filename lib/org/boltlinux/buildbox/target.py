@@ -87,10 +87,10 @@ class BBoxTarget:
             bootstrapper.bootstrap(
                 target_dir, target_spec, **options
             )
-        except Exception:
+        except (KeyboardInterrupt, Exception):
             try:
                 cls.delete(target_name, **options)
-            except:
+            except Exception:
                 pass
             raise
         else:
