@@ -120,6 +120,13 @@ _build_box_arg_complete() {
             cut -d' ' -f"$(($_varg_counter))"
     )
 
+    # The 'delete' command may be handed multiple target names
+    if [ "$_expected_arg" = "..." ] || [ "$_expected_arg" = "" ]; then
+        if [ "${COMP_WORDS[1]}" = "delete" ]; then
+            _expected_arg="<target-name>"
+        fi
+    fi
+
     case "$_expected_arg" in
         '<target-name>')
             COMPREPLY=(

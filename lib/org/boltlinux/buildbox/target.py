@@ -24,7 +24,6 @@
 #
 
 import os
-import pwd
 import re
 import shlex
 import subprocess
@@ -57,7 +56,7 @@ class BBoxTarget:
         if os.path.exists(target_dir):
             if os.listdir(target_dir):
                 if options.get("force"):
-                    cls.delete(target_name, **options)
+                    cls.delete([target_name], **options)
                 else:
                     raise BBoxError(
                         "found non-empty target directory at '{}', aborting."
@@ -92,7 +91,7 @@ class BBoxTarget:
         except (KeyboardInterrupt, Exception):
             try:
                 old_sig_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
-                cls.delete(target_name, **options)
+                cls.delete([target_name], **options)
                 signal.signal(signal.SIGINT, old_sig_handler)
             except Exception:
                 pass
@@ -153,7 +152,12 @@ class BBoxTarget:
     #end function
 
     @classmethod
-    def delete(cls, target_name, **options):
+    def delete(cls, targets: list, **options):
+        for target_name in set(targets):
+            cls._delete(target_name, **options)
+
+    @classmethod
+    def _delete(cls, target_name, **options):
         target_prefix = options.get(
             "target_prefix", BBoxTarget.target_prefix()
         )

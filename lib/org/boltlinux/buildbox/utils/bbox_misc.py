@@ -121,7 +121,5 @@ def bbox_do(*args):
     try:
         os.execvp("build-box-do", args)
     except OSError as e:
-        sys.stderr.write("build-box: error calling build-box-do: %s.\n" % str(e))
-        sys.exit(BBOX_ERR_RUNTIME)
-    #end try
+        raise BBoxError("failed to exec build-box-do: {}".format(str(e)))
 #end function

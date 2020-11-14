@@ -73,7 +73,7 @@ arch tools 1
 dest root /
 """
 
-ETC_TARGET_TEMPLATE="""\
+ETC_TARGET_TEMPLATE = """\
 TARGET_ID={target_id}
 TARGET_MACHINE={machine}
 TARGET_TYPE={target_type}

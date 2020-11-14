@@ -100,7 +100,7 @@ class BBoxCLI:
                     "no-verify"
                 ]
             )
-        except getopt.GetoptError as e:
+        except getopt.GetoptError:
             usage()
             sys.exit(EXIT_ERROR)
 
@@ -168,7 +168,7 @@ class BBoxCLI:
             opts, args = getopt.getopt(
                 args, "ht:", ["targets="]
             )
-        except getopt.GetoptError as e:
+        except getopt.GetoptError:
             usage()
             sys.exit(EXIT_ERROR)
 
@@ -197,7 +197,7 @@ class BBoxCLI:
         def usage():
             print(textwrap.dedent(
                 """
-                Usage: build-box delete [OPTIONS] <target-name>
+                Usage: build-box delete [OPTIONS] <target-name> ...
 
                 OPTIONS:
 
@@ -216,7 +216,7 @@ class BBoxCLI:
             opts, args = getopt.getopt(
                 args, "ht:", ["targets="]
             )
-        except getopt.GetoptError as e:
+        except getopt.GetoptError:
             usage()
             sys.exit(EXIT_ERROR)
 
@@ -234,12 +234,11 @@ class BBoxCLI:
             #end for
         #end for
 
-        if len(args) != 1:
+        if len(args) < 1:
             usage()
             sys.exit(EXIT_ERROR)
 
-        target_name = args[0]
-        BBoxTarget.delete(target_name, **options)
+        BBoxTarget.delete(args, **options)
     #end function
 
     # HELPER
