@@ -72,7 +72,7 @@ class BBoxCLI:
                  --repo-base <url>    Repository base URL up to and including the "repo"
                                       folder.
                  --no-verify          Do not verify package list signatures.
-                """
+                """  # noqa
             ))
         #end inline function
 
@@ -156,7 +156,7 @@ class BBoxCLI:
                  -h,--help           Print this help message and exit immediately.
                  -t,--targets <dir>  Search for targets in the given directory. The
                                      default location is '~/.bolt/targets'.
-                """
+                """  # noqa
             ))
 
         options = {
@@ -204,7 +204,7 @@ class BBoxCLI:
                  -h,--help           Print this help message and exit immediately.
                  -t,--targets <dir>  Look for target to delete below in the given directory.
                                      The default location is '~/.bolt/targets'.
-                """
+                """  # noqa
             ))
 
         options = {

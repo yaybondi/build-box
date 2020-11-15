@@ -1,4 +1,5 @@
 *.swp
+/.tox
 __pycache__
 /.build/
 /.pybuild/
