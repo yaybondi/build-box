@@ -112,7 +112,7 @@ class BBoxTarget:
         if not os.path.isdir(target_prefix):
             return
 
-        for entry in os.listdir(target_prefix):
+        for entry in sorted(os.listdir(target_prefix)):
             machine = "unknown"
 
             if not os.path.isdir(os.path.join(target_prefix, entry)):
