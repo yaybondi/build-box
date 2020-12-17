@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/mount.h>
 #include <string.h>
 #include <errno.h>
 #include "bbox-do.h"
@@ -64,10 +65,12 @@ int bbox_mount_getopt(bbox_conf_t *conf, int argc, char * const argv[])
     int do_mount_all = 1;
 
     static struct option long_options[] = {
-        {"help",     no_argument,       0, 'h'},
-        {"targets",  required_argument, 0, 't'},
-        {"mount",    required_argument, 0, 'm'},
-        { 0,         0,                 0,  0 }
+        {"help",      no_argument,       0, 'h'},
+        {"targets",   required_argument, 0, 't'},
+        {"mount",     required_argument, 0, 'm'},
+        /* Don't use this unless you know what you are doing! */
+        {"real-home", no_argument,       0, '!'},
+        { 0,          0,                 0,  0 }
     };
 
     bbox_config_clear_mount(conf);
@@ -104,6 +107,9 @@ int bbox_mount_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                     return -2;
                 }
 
+                break;
+            case '!':
+                bbox_config_set_workspace(conf, conf->home_dir);
                 break;
             case '?':
                 bbox_perror("mount", "unknown option '%s'.\n", argv[optind-1]);
@@ -195,22 +201,64 @@ cleanup_and_exit:
     return rval;
 }
 
-int bbox_mount_bind(const char *sys_root, const char *mount_point)
+int bbox_mount_verify_workspace(const char *workspace)
+{
+    struct stat st;
+
+    /*
+     * If if doesn't seem to exist, create it.
+     */
+    if(stat(workspace, &st) == -1) {
+        if(bbox_mkdir_p("mount", workspace) == -1)
+            return -1;
+    }
+
+    /*
+     * The workspace needs to belong to the user.
+     */
+    if(bbox_isdir_and_owned_by("mount", workspace, getuid()) == -1)
+        return -1;
+
+    return 0;
+}
+
+void bbox_mount_create_workspace_symlink(const char *homedir,
+        const char *workspace)
 {
     char *buf = NULL;
+    size_t buf_size = 0;
+
+    bbox_path_join(&buf, homedir, "BuildBox", &buf_size);
+
+    struct stat st;
+
+    if(stat(buf, &st) == -1) {
+        if(symlink(workspace, buf));
+    }
+
+    free(buf);
+}
+
+int bbox_mount_bind(const char *sys_root, const char *source,
+        const char *mount_point, int recursive)
+{
+    char *target = NULL;
     size_t buf_len = 0;
     struct stat st;
     int is_mounted = 0;
 
-    bbox_path_join(&buf, sys_root, mount_point, &buf_len);
+    if(!source)
+        source = mount_point;
 
-    if((is_mounted = bbox_mount_is_mounted(buf)) == -1) {
-        free(buf);
+    bbox_path_join(&target, sys_root, mount_point, &buf_len);
+
+    if((is_mounted = bbox_mount_is_mounted(target)) == -1) {
+        free(target);
         return -1;
     }
 
     if(is_mounted) {
-        free(buf);
+        free(target);
         return 0;
     }
 
@@ -218,15 +266,11 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
      * Require that the normalized mountpoint is a directory owned by the user
      * who invoked `build-box` to mitigate the risk of misuse.
      */
-    if(bbox_isdir_and_owned_by("mount", buf, getuid()) == -1) {
-        free(buf);
+    if(bbox_isdir_and_owned_by("mount", target, getuid()) == -1) {
+        free(target);
         return -1;
     }
 
-    char *out_buf = NULL;
-    size_t out_buf_len = 0;
-    char * const argv[] = 
-        {"mount", "-o", "bind,private", (char*const) mount_point, buf, NULL};
     int rval = 0;
 
     /*
@@ -234,34 +278,37 @@ int bbox_mount_bind(const char *sys_root, const char *mount_point)
      * drop them again immediately after.
      */
     if(bbox_raise_privileges() == -1) {
-        free(buf);
+        free(target);
         return -1;
     }
 
-    if(bbox_run_command_capture(0, "mount", argv, &out_buf, &out_buf_len) != 0)
+    unsigned long mountflags = MS_BIND | (recursive ? MS_REC : 0);
+
+    if(mount(source, target, NULL, mountflags, NULL) != 0)
     {
-        if(out_buf) {
-            bbox_perror("mount", "failed to mount %s: \"%s\".\n",
-                    mount_point, out_buf);
-        }
+        bbox_perror("mount", "failed to mount %s on %s: %s.\n",
+                source, target, strerror(errno));
         rval = -1;
+    }
+    else if(mount(NULL, target, NULL, MS_PRIVATE, NULL) != 0)
+    {
+        bbox_perror("mount", "failed to make mountpoint %s private: %s.\n",
+                target, strerror(errno));
+        /* Continue anyway. */
     }
 
     /*
-     * We're done with mounting, drop privileges right away.
+     * We're done with mounting, lower privileges right away.
      */
     if(bbox_lower_privileges() == -1)
         rval = -1;
 
-    free(buf);
-    free(out_buf);
+    free(target);
     return rval;
 }
 
 int bbox_mount_any(const bbox_conf_t *conf, const char *sys_root)
 {
-    struct stat st;
-
     /*
      * As an additional precaution, we require the normalized sys-root directory
      * to be owned by the user who invoked `build-box`.
@@ -270,17 +317,17 @@ int bbox_mount_any(const bbox_conf_t *conf, const char *sys_root)
         return -1;
 
     if(bbox_config_get_mount_dev(conf)) {
-        if(bbox_mount_bind(sys_root, "/dev") < 0)
+        if(bbox_mount_bind(sys_root, NULL, "/dev", 0) < 0)
             return -1;
     }
 
     if(bbox_config_get_mount_proc(conf)) {
-        if(bbox_mount_bind(sys_root, "/proc") < 0)
+        if(bbox_mount_bind(sys_root, NULL, "/proc", 0) < 0)
             return -1;
     }
 
     if(bbox_config_get_mount_sys(conf)) {
-        if(bbox_mount_bind(sys_root, "/sys") < 0)
+        if(bbox_mount_bind(sys_root, NULL, "/sys", 0) < 0)
             return -1;
     }
 
@@ -300,10 +347,21 @@ int bbox_mount_any(const bbox_conf_t *conf, const char *sys_root)
         if(bbox_sysroot_mkdir_p("mount", sys_root, homedir) == -1)
             return -1;
 
+        char *workspace = bbox_config_get_workspace(conf);
+
+        /*
+         * Verify that workspace exists (or create it) and that it belongs to
+         * the user.
+         */
+        if(bbox_mount_verify_workspace(workspace) == -1)
+            return -1;
+
+        bbox_mount_create_workspace_symlink(homedir, workspace);
+
         /*
          * This internally checks the ownership of <sys_root>/<homedir>.
          */
-        if(bbox_mount_bind(sys_root, homedir) < 0)
+        if(bbox_mount_bind(sys_root, workspace, homedir, 0) < 0)
             return -1;
     }
 

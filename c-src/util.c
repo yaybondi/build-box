@@ -871,17 +871,11 @@ int bbox_isdir_and_owned_by(const char *module, const char *dir, uid_t uid)
     return 0;
 }
 
-int bbox_sysroot_mkdir_p(const char *module, const char *sys_root,
-        const char *path)
+int bbox_mkdir_p(const char *module, const char *path)
 {
-    char *buf = NULL;
-    size_t buf_len = 0;
-
-    bbox_path_join(&buf, sys_root, path, &buf_len);
-
     char *out_buf = NULL;
     size_t out_buf_len = 0;
-    char * const argv[] = {"mkdir", "-p", buf, NULL};
+    char * const argv[] = {"mkdir", "-p", (char*) path, NULL};
 
     int rval = bbox_run_command_capture(getuid(), "mkdir", argv, &out_buf,
             &out_buf_len);
@@ -890,7 +884,7 @@ int bbox_sysroot_mkdir_p(const char *module, const char *sys_root,
         if(out_buf) {
             bbox_perror(
                 module, "failed to create directory %s: \"%s\".\n",
-                buf, out_buf
+                path, out_buf
             );
         }
 
@@ -898,6 +892,17 @@ int bbox_sysroot_mkdir_p(const char *module, const char *sys_root,
     }
 
     return rval;
+}
+
+int bbox_sysroot_mkdir_p(const char *module, const char *sys_root,
+        const char *path)
+{
+    char *buf = NULL;
+    size_t buf_len = 0;
+
+    bbox_path_join(&buf, sys_root, path, &buf_len);
+
+    return bbox_mkdir_p(module, buf);
 }
 
 int bbox_is_subdir_of(const char *path, const char *subdir) 

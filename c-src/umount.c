@@ -30,6 +30,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/mount.h>
 #include <string.h>
 #include <errno.h>
 #include "bbox-do.h"
@@ -169,9 +170,6 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
         return -1;
     }
 
-    char *out_buf = NULL;
-    size_t out_buf_len = 0;
-    char * const argv[] = {"umount", buf, NULL};
     int rval = 0;
 
     if(bbox_raise_privileges() == -1) {
@@ -179,13 +177,9 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
         return -1;
     }
 
-    if(bbox_run_command_capture(0, "umount", argv, &out_buf,
-                &out_buf_len) != 0)
-    {
-        if(out_buf) {
-            bbox_perror("umount", "failed to unmount %s: \"%s\".\n",
-                    mount_point, out_buf);
-        }
+    if(umount(buf) != 0) {
+        bbox_perror("umount", "failed to unmount %s: %s\n", buf,
+                strerror(errno));
         rval = -1;
     }
 
@@ -193,7 +187,6 @@ int bbox_umount_unbind(const char *sys_root, const char *mount_point)
         rval = -1;
 
     free(buf);
-    free(out_buf);
     return rval;
 }
 

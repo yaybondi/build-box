@@ -56,11 +56,11 @@ bbox_conf_t *bbox_config_new()
      * Normalize the path to mitigate the risk of any hypothetical symlink
      * attacks.
      */
-    if(!homedir || !(homedir = realpath(homedir, NULL))) {
+    if(!homedir || !(conf->home_dir = realpath(homedir, NULL))) {
         bbox_perror(
             "bbox_config_new", "could not determine user home directory.\n"
         );
-        return NULL;
+        goto failure;
     }
 
     /*
@@ -68,19 +68,22 @@ bbox_conf_t *bbox_config_new()
      * invoked the program. Anything else is fishy and there is no reason to
      * allow it.
      */
-    if(bbox_isdir_and_owned_by("bbox_config_new", homedir, getuid()) == -1) {
-        free(homedir);
-        return NULL;
+    if(bbox_isdir_and_owned_by("bbox_config_new", conf->home_dir,
+                getuid()) == -1)
+    {
+        goto failure;
     }
 
-    /*
-     * Creating dotfiles and dirs directly in the user's home directory is not
-     * considered cool anymore. But lettings users search in the depths of
-     * .local doesn't seem particularly great either.
-     */
-    conf->home_dir = homedir;
+    buf_size = 0;
+
     bbox_path_join(
         &(conf->target_dir), conf->home_dir, ".bolt/targets", &buf_size
+    );
+
+    buf_size = 0;
+
+    bbox_path_join(
+        &(conf->workspace), conf->home_dir, ".bolt/workspace", &buf_size
     );
 
     /*
@@ -89,7 +92,12 @@ bbox_conf_t *bbox_config_new()
     conf->do_mount = 0;
     conf->do_file_updates = 0;
 
+success:
     return conf;
+
+failure:
+    bbox_config_free(conf);
+    return NULL;
 }
 
 int bbox_config_set_target_dir(bbox_conf_t *conf, const char *path)
@@ -128,6 +136,25 @@ int bbox_config_set_home_dir(bbox_conf_t *conf, const char *path)
 char *bbox_config_get_home_dir(const bbox_conf_t *conf)
 {
     return conf->home_dir;
+}
+
+int bbox_config_set_workspace(bbox_conf_t *conf, const char *path)
+{
+    if(conf->workspace)
+        free(conf->workspace);
+    conf->workspace = strdup(path);
+
+    if(!conf->workspace) {
+        bbox_perror("bbox_config_new", "out of memory?\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+char *bbox_config_get_workspace(const bbox_conf_t *conf)
+{
+    return conf->workspace;
 }
 
 void bbox_config_clear_mount(bbox_conf_t *c)
@@ -222,9 +249,8 @@ unsigned int bbox_config_do_file_updates(const bbox_conf_t *c)
 
 void bbox_config_free(bbox_conf_t *conf)
 {
-    if(conf->home_dir)
-        free(conf->home_dir);
-    if(conf->target_dir)
-        free(conf->target_dir);
+    free(conf->workspace);
+    free(conf->home_dir);
+    free(conf->target_dir);
     free(conf);
 }
