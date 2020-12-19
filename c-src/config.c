@@ -34,21 +34,22 @@
 
 bbox_conf_t *bbox_config_new()
 {
-    size_t buf_size = 0;
-    char *homedir = NULL;
-
     bbox_conf_t *conf = calloc(sizeof(bbox_conf_t), 1);
     if(!conf) {
         bbox_perror("bbox_config_new", "out of memory?\n");
         return NULL;
     }
 
+    unsigned long uid = (unsigned long) getuid();
+
     /*
      * Always take the home directory from the password database, because it
      * seems risky to let the user specify arbitrary locations in the `$HOME`
      * environment variables.
      */
-    struct passwd *pwd = getpwuid(getuid());
+    char *homedir = NULL;
+
+    struct passwd *pwd = getpwuid(uid);
     if(pwd)
         homedir = pwd->pw_dir;
 
@@ -68,23 +69,22 @@ bbox_conf_t *bbox_config_new()
      * invoked the program. Anything else is fishy and there is no reason to
      * allow it.
      */
-    if(bbox_isdir_and_owned_by("bbox_config_new", conf->home_dir,
-                getuid()) == -1)
-    {
+
+    size_t buf_size = 0;
+
+    if(bbox_isdir_and_owned_by("bbox_config_new", conf->home_dir, uid) == -1)
+        goto failure;
+
+    conf->target_dir = bbox_get_user_dir(uid, &buf_size);
+
+    if(conf->target_dir == NULL) {
+        bbox_perror(
+            "bbox_config_new", "failed to get user directory.\n"
+        );
         goto failure;
     }
 
-    buf_size = 0;
-
-    bbox_path_join(
-        &(conf->target_dir), conf->home_dir, ".bolt/targets", &buf_size
-    );
-
-    buf_size = 0;
-
-    bbox_path_join(
-        &(conf->workspace), conf->home_dir, "BuildBox", &buf_size
-    );
+    bbox_path_join(&conf->target_dir, conf->target_dir, "targets", &buf_size);
 
     /*
      * Start with an empty set of actions and explicitly add them when needed.
@@ -136,25 +136,6 @@ int bbox_config_set_home_dir(bbox_conf_t *conf, const char *path)
 char *bbox_config_get_home_dir(const bbox_conf_t *conf)
 {
     return conf->home_dir;
-}
-
-int bbox_config_set_workspace(bbox_conf_t *conf, const char *path)
-{
-    if(conf->workspace)
-        free(conf->workspace);
-    conf->workspace = strdup(path);
-
-    if(!conf->workspace) {
-        bbox_perror("bbox_config_new", "out of memory?\n");
-        return -1;
-    }
-
-    return 0;
-}
-
-char *bbox_config_get_workspace(const bbox_conf_t *conf)
-{
-    return conf->workspace;
 }
 
 void bbox_config_clear_mount(bbox_conf_t *c)
@@ -249,7 +230,6 @@ unsigned int bbox_config_do_file_updates(const bbox_conf_t *c)
 
 void bbox_config_free(bbox_conf_t *conf)
 {
-    free(conf->workspace);
     free(conf->home_dir);
     free(conf->target_dir);
     free(conf);

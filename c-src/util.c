@@ -1006,3 +1006,31 @@ cleanup_and_exit:
     free(out_buf);
     return rval;
 }
+
+char *bbox_get_user_dir(uid_t uid, size_t *n_ptr)
+{
+    int buf_size = snprintf(NULL, 0, BBOX_USER_DIR_TEMPLATE,
+            (unsigned long) uid) + 1;
+
+    char *user_dir = NULL;
+
+    if((user_dir = malloc(buf_size)) == NULL) {
+        bbox_perror("bbox_get_user_dir", "out of memory!\n");
+        abort();
+    }
+
+    int needed_bytes = snprintf(user_dir, buf_size, BBOX_USER_DIR_TEMPLATE,
+            (unsigned long) uid);
+
+    if(needed_bytes >= buf_size)
+        goto failure;
+
+success:
+    if(n_ptr != NULL)
+        *n_ptr = buf_size;
+    return user_dir;
+
+failure:
+    free(user_dir);
+    return NULL;
+}

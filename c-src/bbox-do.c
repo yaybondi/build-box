@@ -39,6 +39,7 @@ void bbox_main_usage()
         "                                                                    \n"
         "COMMANDS:                                                           \n"
         "                                                                    \n"
+        "  init     Initialize build box environment for new user.           \n"
         "  login    Chroot into a target.                                    \n"
         "  mount    Mount homedir and special file systems (dev, proc, sys). \n"
         "  umount   Unmount homedir and special file systems.                \n"
@@ -106,6 +107,8 @@ int main(int argc, char *argv[])
      * Check which command was invoked and delegate to the appropriate
      * sub-module.
      */
+    if(strcmp(command, "init") == 0)
+        return bbox_init(argc-1, &argv[1]);
     if(strcmp(command, "login") == 0)
         return bbox_login(argc-1, &argv[1]);
     if(strcmp(command, "mount") == 0)

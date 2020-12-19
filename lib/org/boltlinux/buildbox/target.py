@@ -40,11 +40,29 @@ class BBoxTarget:
 
     @classmethod
     def create(cls, target_name, target_spec, **options):
+        try:
+            subprocess.run(
+                shlex.split("{} init".format(sys.argv[0])),
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                universal_newlines=True,
+                check=True
+            )
+        except subprocess.CalledProcessError as e:
+            raise BBoxError(e.stderr.strip())
+
         target_prefix = options.get(
             "target_prefix", BBoxTarget.target_prefix()
         )
+
         if not os.path.isdir(target_prefix):
-            os.makedirs(target_prefix)
+            try:
+                os.makedirs(target_prefix)
+            except OSError as e:
+                raise BBoxError(
+                    "failed to create target prefix '{}': {}"
+                    .format(target_prefix, str(e))
+                )
 
         if not re.match(r"^[-_a-zA-Z0-9.]+$", target_name):
             raise BBoxError(
@@ -211,6 +229,8 @@ class BBoxTarget:
 
     @classmethod
     def target_prefix(cls):
-        return os.path.join(bboxutils.homedir(), ".bolt", "targets")
+        return os.path.join(
+            "/var/lib/build-box/users", "{}".format(os.getuid()), "targets"
+        )
 
 #end class

@@ -66,8 +66,6 @@ class BBoxCLI:
                  -h,--help            Print this help message and exit immediately.
                  -r,--release <name>  The name of the release to bootstrap (default: stable)
                  -a,--arch <arch>     The architecture to bootstrap (default: x86_64)
-                 -t,--targets <dir>   Create target below the given directory. The default
-                                      target base directory is '~/.bolt/targets'.
                  --force              Overwrite any existing target with the same name.
                  --repo-base <url>    Repository base URL up to and including the "repo"
                                       folder.
@@ -154,8 +152,6 @@ class BBoxCLI:
                 OPTIONS:
 
                  -h,--help           Print this help message and exit immediately.
-                 -t,--targets <dir>  Search for targets in the given directory. The
-                                     default location is '~/.bolt/targets'.
                 """  # noqa
             ))
 
@@ -202,8 +198,6 @@ class BBoxCLI:
                 OPTIONS:
 
                  -h,--help           Print this help message and exit immediately.
-                 -t,--targets <dir>  Look for target to delete below in the given directory.
-                                     The default location is '~/.bolt/targets'.
                 """  # noqa
             ))
 

@@ -47,12 +47,6 @@ void bbox_mount_usage()
         "                                                                        \n"
         " -h,--help             Print this help message and exit immediately.    \n"
         "                                                                        \n"
-        " -t,--targets <dir>    Search for targets in the given directory. The   \n"
-        "                       default location is '~/.bolt/targets'.           \n"
-        "                                                                        \n"
-        " -w,--workspace <dir>  Use the given directory as the workspace instead \n"
-        "                       of the default '~/BuildBox'.                     \n"
-        "                                                                        \n"
         " -m,--mount <fstype>   Mount 'dev', 'proc', 'sys' or 'home'. For the    \n"
         "                       'mount' command, if this option is not specified,\n"
         "                       then the default is to mount all of them.        \n"
@@ -70,7 +64,6 @@ int bbox_mount_getopt(bbox_conf_t *conf, int argc, char * const argv[])
     static struct option long_options[] = {
         {"help",      no_argument,       0, 'h'},
         {"targets",   required_argument, 0, 't'},
-        {"workspace", required_argument, 0, 'w'},
         {"mount",     required_argument, 0, 'm'},
         { 0,          0,                 0,  0 }
     };
@@ -91,10 +84,6 @@ int bbox_mount_getopt(bbox_conf_t *conf, int argc, char * const argv[])
             case 't':
                 if(bbox_config_set_target_dir(conf, optarg) < 0)
                     return -2;
-                break;
-            case 'w':
-               if(bbox_config_set_workspace(conf, optarg) < 0)
-                   return -2;
                 break;
             case 'm':
                 do_mount_all = 0;
@@ -204,39 +193,14 @@ cleanup_and_exit:
     return rval;
 }
 
-int bbox_mount_verify_workspace(const char *workspace)
-{
-    struct stat st;
-
-    /*
-     * If if doesn't seem to exist, create it.
-     */
-    if(stat(workspace, &st) == -1) {
-        if(bbox_mkdir_p("mount", workspace) == -1)
-            return -1;
-    }
-
-    /*
-     * The workspace needs to belong to the user.
-     */
-    if(bbox_isdir_and_owned_by("mount", workspace, getuid()) == -1)
-        return -1;
-
-    return 0;
-}
-
-int bbox_mount_bind(const char *sys_root, const char *source,
-        const char *mount_point, int recursive)
+int bbox_mount_bind(const char *sys_root, const char *source, int recursive)
 {
     char *target = NULL;
     size_t buf_len = 0;
     struct stat st;
     int is_mounted = 0;
 
-    if(!source)
-        source = mount_point;
-
-    bbox_path_join(&target, sys_root, mount_point, &buf_len);
+    bbox_path_join(&target, sys_root, source, &buf_len);
 
     if((is_mounted = bbox_mount_is_mounted(target)) == -1) {
         free(target);
@@ -303,17 +267,17 @@ int bbox_mount_any(const bbox_conf_t *conf, const char *sys_root)
         return -1;
 
     if(bbox_config_get_mount_dev(conf)) {
-        if(bbox_mount_bind(sys_root, NULL, "/dev", 0) < 0)
+        if(bbox_mount_bind(sys_root, "/dev", 0) < 0)
             return -1;
     }
 
     if(bbox_config_get_mount_proc(conf)) {
-        if(bbox_mount_bind(sys_root, NULL, "/proc", 0) < 0)
+        if(bbox_mount_bind(sys_root, "/proc", 0) < 0)
             return -1;
     }
 
     if(bbox_config_get_mount_sys(conf)) {
-        if(bbox_mount_bind(sys_root, NULL, "/sys", 0) < 0)
+        if(bbox_mount_bind(sys_root, "/sys", 0) < 0)
             return -1;
     }
 
@@ -333,19 +297,10 @@ int bbox_mount_any(const bbox_conf_t *conf, const char *sys_root)
         if(bbox_sysroot_mkdir_p("mount", sys_root, homedir) == -1)
             return -1;
 
-        char *workspace = bbox_config_get_workspace(conf);
-
-        /*
-         * Verify that workspace exists (or create it) and that it belongs to
-         * the user.
-         */
-        if(bbox_mount_verify_workspace(workspace) == -1)
-            return -1;
-
         /*
          * This internally checks the ownership of <sys_root>/<homedir>.
          */
-        if(bbox_mount_bind(sys_root, workspace, homedir, 0) < 0)
+        if(bbox_mount_bind(sys_root, homedir, 0) < 0)
             return -1;
     }
 

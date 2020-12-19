@@ -66,7 +66,7 @@ _build_box_arg_complete() {
 
     local _word_counter=0
     local _varg_counter=0
-    local _target_dir="$HOME/.bolt/targets"
+    local _target_dir="/var/lib/build-box/users/$(id -u)/targets"
 
     while [ "$_word_counter" -lt "${#COMP_WORDS[*]}" ]; do
         local _varg="${COMP_WORDS[$_word_counter]}"

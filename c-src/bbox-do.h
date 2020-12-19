@@ -14,13 +14,14 @@
 #define BBOX_DO_MOUNT_ALL  0xF
 
 #define BBOX_GROUP_NAME "build-box"
+#define BBOX_VAR_LIB "/var/lib/build-box"
+#define BBOX_USER_DIR_TEMPLATE BBOX_VAR_LIB"/users/%lu"
 
 #include <sys/types.h>
 
 typedef struct {
     char *target_dir;
     char *home_dir;
-    char *workspace;
     unsigned int do_mount;
     unsigned int do_file_updates;
 } bbox_conf_t;
@@ -32,9 +33,6 @@ char *bbox_config_get_target_dir(const bbox_conf_t *conf);
 
 int bbox_config_set_home_dir(bbox_conf_t *conf, const char *path);
 char *bbox_config_get_home_dir(const bbox_conf_t *conf);
-
-int bbox_config_set_workspace(bbox_conf_t *conf, const char *path);
-char *bbox_config_get_workspace(const bbox_conf_t *conf);
 
 void bbox_config_clear_mount(bbox_conf_t *c);
 
@@ -87,13 +85,20 @@ int bbox_sysroot_mkdir_p(const char *module, const char *sysroot,
 int bbox_is_subdir_of(const char *path, const char *subdir);
 int bbox_try_fix_pkg_cache_symlink(char *module);
 
+char *bbox_get_user_dir(uid_t uid, size_t *n_ptr);
+
 /* Mounting */
 
 int bbox_mount_any(const bbox_conf_t *conf, const char *sys_root);
 int bbox_mount_is_mounted(const char *path);
 
+/* Setup */
+
+int bbox_init_user_directory();
+
 /* Commands */
 
+int bbox_init(int argc, char * const argv[]);
 int bbox_list(int argc, char * const argv[]);
 int bbox_login(int argc, char * const argv[]);
 int bbox_run(int argc, char * const argv[]);

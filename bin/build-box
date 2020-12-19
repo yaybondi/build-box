@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
         command = sys.argv[1]
 
-        if command in ["login", "mount", "umount", "run"]:
+        if command in ["init", "login", "mount", "umount", "run"]:
             bbox_do("build-box-do", *sys.argv[1:])
         elif command in ["create", "list", "delete"]:
             BBoxCLI().execute_command(*sys.argv[1:])
