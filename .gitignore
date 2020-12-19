@@ -12,11 +12,11 @@ __pycache__
 /config.h.in
 /configure
 /debian/.debhelper/
-/debian/build-box-utils.debhelper.log
-/debian/build-box-utils.postinst.debhelper
-/debian/build-box-utils.prerm.debhelper
-/debian/build-box-utils.substvars
-/debian/build-box-utils/
+/debian/build-box-ng.debhelper.log
+/debian/build-box-ng.postinst.debhelper
+/debian/build-box-ng.prerm.debhelper
+/debian/build-box-ng.substvars
+/debian/build-box-ng/
 /debian/files
 /depcomp
 /install-sh
