@@ -83,7 +83,7 @@ bbox_conf_t *bbox_config_new()
     buf_size = 0;
 
     bbox_path_join(
-        &(conf->workspace), conf->home_dir, ".bolt/workspace", &buf_size
+        &(conf->workspace), conf->home_dir, "BuildBox", &buf_size
     );
 
     /*

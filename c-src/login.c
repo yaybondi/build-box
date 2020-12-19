@@ -35,25 +35,28 @@
 void bbox_login_usage()
 {
     printf(
-        "Build Box NG Management Utility, Version %s                            \n"
-        "Copyright (c) 2017-2020 Tobias Koch <tobias.koch@gmail.com>            \n"
-        "                                                                       \n"
-        "Usage: build-box-do login [OPTIONS] <target-name>                      \n"
-        "                                                                       \n"
-        "OPTIONS:                                                               \n"
-        "                                                                       \n"
-        " -h,--help            Print this help message and exit immediately.    \n"
-        "                                                                       \n"
-        " -t,--targets <dir>   Search for targets in the given directory. The   \n"
-        "                      default location is '~/.bolt/targets'.           \n"
-        "                                                                       \n"
-        " -n,--no-mount        Don't bind mount homedir and special filesystems.\n"
-        "                      This does *not* unmount previously mounted       \n"
-        "                      file systems. Use 'bbox-do umount' for that.     \n"
-        "                                                                       \n"
-        " --no-file-copy       Don't copy /etc/passwd, group and resolv.conf    \n"
-        "                      from host.                                       \n"
-        "                                                                       \n",
+        "Build Box NG Management Utility, Version %s                             \n"
+        "Copyright (c) 2017-2020 Tobias Koch <tobias.koch@gmail.com>             \n"
+        "                                                                        \n"
+        "Usage: build-box-do login [OPTIONS] <target-name>                       \n"
+        "                                                                        \n"
+        "OPTIONS:                                                                \n"
+        "                                                                        \n"
+        " -h,--help             Print this help message and exit immediately.    \n"
+        "                                                                        \n"
+        " -t,--targets <dir>    Search for targets in the given directory. The   \n"
+        "                       default location is '~/.bolt/targets'.           \n"
+        "                                                                        \n"
+        " -w,--workspace <dir>  Use the given directory as the workspace instead \n"
+        "                       of the default '~/BuildBox'.                     \n"
+        "                                                                        \n"
+        " -n,--no-mount         Don't bind mount homedir and special filesystems.\n"
+        "                       This does *not* unmount previously mounted       \n"
+        "                       file systems. Use 'bbox-do umount' for that.     \n"
+        "                                                                        \n"
+        " --no-file-copy        Don't copy /etc/passwd, group and resolv.conf    \n"
+        "                       from host.                                       \n"
+        "                                                                        \n",
         BBOX_VERSION
     );
 }
@@ -64,11 +67,12 @@ int bbox_login_getopt(bbox_conf_t *conf, int argc, char * const argv[])
     int option_index = 0;
 
     static struct option long_options[] = {
-        {"help",     no_argument,       0, 'h'},
-        {"targets",  required_argument, 0, 't'},
-        {"no-mount", no_argument,       0, 'n'},
-        {"no-file-copy", no_argument,   0, '1'},
-        { 0,         0,                 0,  0 }
+        {"help",         no_argument,       0, 'h'},
+        {"targets",      required_argument, 0, 't'},
+        {"workspace",    required_argument, 0, 'w'},
+        {"no-mount",     no_argument,       0, 'n'},
+        {"no-file-copy", no_argument,       0, '1'},
+        { 0,             0,                 0,  0 }
     };
 
     /*
@@ -92,6 +96,10 @@ int bbox_login_getopt(bbox_conf_t *conf, int argc, char * const argv[])
             case 't':
                 if(bbox_config_set_target_dir(conf, optarg) == -1)
                     return -2;
+                break;
+            case 'w':
+               if(bbox_config_set_workspace(conf, optarg) < 0)
+                   return -2;
                 break;
             case 'n':
                 bbox_config_clear_mount(conf);

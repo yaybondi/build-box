@@ -45,14 +45,17 @@ void bbox_mount_usage()
         "                                                                        \n"
         "OPTIONS:                                                                \n"
         "                                                                        \n"
-        " -h,--help            Print this help message and exit immediately.     \n"
+        " -h,--help             Print this help message and exit immediately.    \n"
         "                                                                        \n"
-        " -t,--targets <dir>   Search for targets in the given directory. The    \n"
-        "                      default location is '~/.bolt/targets'.            \n"
+        " -t,--targets <dir>    Search for targets in the given directory. The   \n"
+        "                       default location is '~/.bolt/targets'.           \n"
         "                                                                        \n"
-        " -m,--mount <fstype>  Mount 'dev', 'proc', 'sys' or 'home'. For the     \n"
-        "                      'mount' command, if this option is not specified, \n"
-        "                      then the default is to mount all of them.         \n"
+        " -w,--workspace <dir>  Use the given directory as the workspace instead \n"
+        "                       of the default '~/BuildBox'.                     \n"
+        "                                                                        \n"
+        " -m,--mount <fstype>   Mount 'dev', 'proc', 'sys' or 'home'. For the    \n"
+        "                       'mount' command, if this option is not specified,\n"
+        "                       then the default is to mount all of them.        \n"
         "                                                                        \n",
         BBOX_VERSION
     );
@@ -67,9 +70,8 @@ int bbox_mount_getopt(bbox_conf_t *conf, int argc, char * const argv[])
     static struct option long_options[] = {
         {"help",      no_argument,       0, 'h'},
         {"targets",   required_argument, 0, 't'},
+        {"workspace", required_argument, 0, 'w'},
         {"mount",     required_argument, 0, 'm'},
-        /* Don't use this unless you know what you are doing! */
-        {"real-home", no_argument,       0, '!'},
         { 0,          0,                 0,  0 }
     };
 
@@ -90,6 +92,10 @@ int bbox_mount_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                 if(bbox_config_set_target_dir(conf, optarg) < 0)
                     return -2;
                 break;
+            case 'w':
+               if(bbox_config_set_workspace(conf, optarg) < 0)
+                   return -2;
+                break;
             case 'm':
                 do_mount_all = 0;
 
@@ -107,9 +113,6 @@ int bbox_mount_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                     return -2;
                 }
 
-                break;
-            case '!':
-                bbox_config_set_workspace(conf, conf->home_dir);
                 break;
             case '?':
                 bbox_perror("mount", "unknown option '%s'.\n", argv[optind-1]);
@@ -220,23 +223,6 @@ int bbox_mount_verify_workspace(const char *workspace)
         return -1;
 
     return 0;
-}
-
-void bbox_mount_create_workspace_symlink(const char *homedir,
-        const char *workspace)
-{
-    char *buf = NULL;
-    size_t buf_size = 0;
-
-    bbox_path_join(&buf, homedir, "BuildBox", &buf_size);
-
-    struct stat st;
-
-    if(stat(buf, &st) == -1) {
-        if(symlink(workspace, buf));
-    }
-
-    free(buf);
 }
 
 int bbox_mount_bind(const char *sys_root, const char *source,
@@ -355,8 +341,6 @@ int bbox_mount_any(const bbox_conf_t *conf, const char *sys_root)
          */
         if(bbox_mount_verify_workspace(workspace) == -1)
             return -1;
-
-        bbox_mount_create_workspace_symlink(homedir, workspace);
 
         /*
          * This internally checks the ownership of <sys_root>/<homedir>.
