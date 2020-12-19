@@ -1,3 +1,15 @@
+build-box-utils (0.9.2-1bolt1) unstable; urgency=medium
+
+  * Install bash-completion.sh as bash_completion.d/build-box
+  * Keep targets below /var/lib/build-box/users
+  * Rework mount functionality
+  * List targets sorted
+  * The 'delete' command can be passed multiple targets
+  * Don't allow interrupting target removal
+  * Remove target if user interrupts creation
+
+ -- Tobias Koch <tobias.koch@gmail.com>  Sat, 19 Dec 2020 23:54:53 +0300
+
 build-box-utils (0.9.1-1bolt1) unstable; urgency=medium
 
   * Add dependency on bolt-repo-keys.
