@@ -38,7 +38,7 @@ void bbox_init_usage()
         "Build Box NG Management Utility, Version %s                             \n"
         "Copyright (c) 2017-2020 Tobias Koch <tobias.koch@gmail.com>             \n"
         "                                                                        \n"
-        "Usage: build-box-do init [OPTIONS]                                      \n"
+        "Usage: build-box init [OPTIONS]                                         \n"
         "                                                                        \n"
         "OPTIONS:                                                                \n"
         "                                                                        \n"

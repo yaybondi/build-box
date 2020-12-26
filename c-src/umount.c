@@ -41,7 +41,7 @@ void bbox_umount_usage()
         "Build Box NG Management Utility, Version %s                             \n"
         "Copyright (c) 2017-2020 Tobias Koch <tobias.koch@gmail.com>             \n"
         "                                                                        \n"
-        "Usage: build-box-do umount [OPTIONS] <target-name>                      \n"
+        "Usage: build-box umount [OPTIONS] <target-name>                         \n"
         "                                                                        \n"
         "OPTIONS:                                                                \n"
         "                                                                        \n"
