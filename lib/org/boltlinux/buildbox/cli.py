@@ -28,7 +28,8 @@ import sys
 import getopt
 import textwrap
 
-from org.boltlinux.buildbox.utils import homedir, switch
+from org.boltlinux.buildbox.utils import switch
+from org.boltlinux.buildbox.utils.miscellaneous import Miscellaneous as Utils
 from org.boltlinux.buildbox.target import BBoxTarget
 from org.boltlinux.buildbox.error import BBoxError
 
@@ -238,7 +239,7 @@ class BBoxCLI:
     # HELPER
 
     def _get_cache_dir(self):
-        return os.path.join(homedir(), ".bolt", "cache")
+        return os.path.join(Utils.homedir(), ".bolt", "cache")
 
     def _get_default_release(self):
         return "stable"

@@ -30,10 +30,7 @@ import shutil
 import subprocess
 import tempfile
 
-from org.boltlinux.buildbox.utils import (
-    homedir, valid_arch, target_for_machine
-)
-
+from org.boltlinux.buildbox.utils.miscellaneous import Miscellaneous as Utils
 from org.boltlinux.buildbox.error import BBoxError
 
 OPKG_CONFIG_TEMPLATE = """\
@@ -55,8 +52,8 @@ option force_postinstall
 
 src/gz main {repo_base}/{release}/core/{arch}/{libc}/main
 src/gz main-debug {repo_base}/{release}/core/{arch}/{libc}/main-debug
-src/gz tools {repo_base}/{release}/core/{arch}/{libc}/tools
-src/gz tools-debug {repo_base}/{release}/core/{arch}/{libc}/tools-debug
+src/gz tools {repo_base}/{release}/core/{arch}/{libc}/tools/{host_arch}
+src/gz tools-debug {repo_base}/{release}/core/{arch}/{libc}/tools-debug/{host_arch}
 
 ##############################################################################
 # ARCHES
@@ -71,20 +68,20 @@ arch tools 1
 ##############################################################################
 
 dest root /
-"""
+"""  # noqa
 
 ETC_TARGET_TEMPLATE = """\
 TARGET_ID={target_id}
 TARGET_MACHINE={machine}
 TARGET_TYPE={target_type}
-TOOLS_TYPE=x86_64-tools-linux-musl
+TOOLS_TYPE={host_arch}-tools-linux-musl
 """
 
 class BBoxBootstrap:
 
     def __init__(self, release, arch, libc="musl", do_verify=True,
             cache_dir=None):
-        if not valid_arch(arch):
+        if not Utils.valid_arch(arch):
             raise BBoxError("unknown target architecture: {}".format(arch))
 
         self._release = release
@@ -95,7 +92,7 @@ class BBoxBootstrap:
         if cache_dir:
             self._cache_dir = cache_dir
         else:
-            self._cache_dir = os.path.join(homedir(), ".bolt", "cache")
+            self._cache_dir = os.path.join(Utils.homedir(), ".bolt", "cache")
     #end function
 
     def bootstrap(self, target_dir, specfile, force=False, **options):
@@ -108,9 +105,10 @@ class BBoxBootstrap:
             "release": self._release,
             "libc": self._libc,
             "arch": self._arch,
+            "host_arch": Utils.uname("-m"),
             "target_id": os.path.basename(target_dir),
             "machine": self._arch,
-            "target_type": target_for_machine(self._arch),
+            "target_type": Utils.target_for_machine(self._arch),
             "opt_check_sig": opt_check_sig,
             "repo_base": options.get("repo_base")
         }
