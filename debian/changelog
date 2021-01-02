@@ -1,3 +1,10 @@
+build-box-utils (0.9.3-1bolt1) unstable; urgency=medium
+
+  * Pick up tools packages from tools/<host_arch>
+  * build-box-do: all usage refers to 'build-box' command
+
+ -- Tobias Koch <tobias.koch@gmail.com>  Sat, 02 Jan 2021 17:34:43 +0300
+
 build-box-utils (0.9.2-1bolt1) unstable; urgency=medium
 
   * Install bash-completion.sh as bash_completion.d/build-box
