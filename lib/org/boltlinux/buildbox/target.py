@@ -75,7 +75,7 @@ class BBoxTarget:
                     cls.delete([target_name], **options)
                 else:
                     raise BBoxError(
-                        "found non-empty target directory at '{}', aborting."
+                        "target '{}' already exists, aborting."
                         .format(target_dir)
                     )
                 #end if
