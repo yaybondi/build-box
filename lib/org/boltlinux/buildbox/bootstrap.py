@@ -23,6 +23,7 @@
 # THE SOFTWARE.
 #
 
+import collections
 import os
 import re
 import shlex
@@ -113,15 +114,20 @@ class BBoxBootstrap:
                 options.get("repo_base")
         }
 
-        package_cache = self._package_cache()
+        package_cache = os.path.join(
+            Paths.cache_dir(), "bolt", "dists", self._release, self._arch,
+                self._libc
+        )
+
         if not os.path.exists(package_cache):
             os.makedirs(package_cache)
 
-        batches = self._read_package_spec(specfile)
-
         package_cache_symlink = os.path.join(target_dir, ".pkg-cache")
+
         if not os.path.exists(package_cache_symlink):
             os.symlink(package_cache, package_cache_symlink)
+
+        batches = self._read_package_spec(specfile)
 
         with tempfile.TemporaryDirectory(prefix="bbox-") as dirname:
             opkg_conf = os.path.join(dirname, "opkg.conf")
@@ -144,10 +150,14 @@ class BBoxBootstrap:
             "etc/opkg/usign",
             "tools",
             "tools/bin",
+            "usr",
+            "usr/bin",
         ]
 
         for dirname in dirs_to_create:
             os.makedirs(os.path.join(target_dir, dirname), exist_ok=True)
+
+        self._copy_qemu(target_dir)
 
         etc_target = os.path.join(target_dir, "etc", "target")
         with open(etc_target, "w+", encoding="utf-8") as f:
@@ -186,6 +196,55 @@ class BBoxBootstrap:
             except subprocess.CalledProcessError:
                 raise BBoxError("failed to install batch of packages.")
         #end for
+    #end function
+
+    def _copy_qemu(self, target_dir):
+        qemu_user_static = ""
+
+        prefix_map = collections.OrderedDict([
+            ("aarch64",
+                "qemu-aarch64-static"),
+            ("arm",
+                "qemu-arm-static"),
+            ("mips64el",
+                "qemu-mips64el-static"),
+            ("mipsel",
+                "qemu-mipsel-static"),
+            ("powerpc64el",
+                "qemu-ppc64le-static"),
+            ("powerpc64le",
+                "qemu-ppc64le-static"),
+            ("ppc64le",
+                "qemu-ppc64le-static"),
+            ("powerpc",
+                "qemu-ppc-static"),
+            ("riscv64",
+                "qemu-riscv64-static"),
+            ("s390x",
+                "qemu-s390x-static"),
+        ])
+
+        for prefix, qemu_binary in prefix_map.items():
+            if self._arch.startswith(prefix):
+                qemu_user_static = qemu_binary
+                break
+
+        if not qemu_user_static:
+            return
+
+        source_path = Platform.find_executable(qemu_user_static)
+        if not source_path:
+            raise BBoxError(
+                'could not find QEMU executable "{}".'.format(qemu_user_static)
+            )
+
+        target_dir = os.path.dirname(
+            os.path.join(target_dir, source_path.lstrip("/"))
+        )
+        if not os.path.exists(target_dir):
+            os.makedirs(target_dir, exist_ok=True)
+
+        shutil.copy2(source_path, target_dir)
     #end function
 
     def _read_package_spec(self, specfile):
@@ -255,8 +314,6 @@ class BBoxBootstrap:
 
     def _package_cache(self):
         return os.path.join(
-            Paths.cache_dir(), "bolt", "dists", self._release,
-                self._arch, self._libc
         )
     #end function
 
