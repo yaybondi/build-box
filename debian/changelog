@@ -1,3 +1,9 @@
+build-box-utils (0.9.4.1-1bolt1) unstable; urgency=medium
+
+  * Cosmetics: change an error message.
+
+ -- Tobias Koch <tobias.koch@gmail.com>  Sat, 16 Jan 2021 20:26:36 +0300
+
 build-box-utils (0.9.4-1bolt1.1) unstable; urgency=medium
 
   * Cleanups and refactoring.
