@@ -1,4 +1,4 @@
-build-box-utils (0.9.4.1-1bolt1) unstable; urgency=medium
+build-box-utils (0.9.4.2-1bolt1) unstable; urgency=medium
 
   * Cosmetics: change an error message.
 
