@@ -25,29 +25,12 @@
 
 import locale
 import os
-import pwd
 import re
-import sys
-import signal
 import subprocess
-import time
 
 from org.boltlinux.buildbox.error import BBoxError
 
-class Miscellaneous:
-
-    @staticmethod
-    def homedir():
-        home = None
-
-        pw = pwd.getpwuid(os.geteuid())
-        if pw:
-            home = pw.pw_dir
-        if not home:
-            raise BBoxError("unable to determine user home directory.")
-
-        return os.path.normpath(os.path.realpath(home))
-    #end function
+class Platform:
 
     @staticmethod
     def find_executable(executable_name):
@@ -66,7 +49,7 @@ class Miscellaneous:
 
     @staticmethod
     def uname(*args):
-        uname = Miscellaneous.find_executable("uname")
+        uname = Platform.find_executable("uname")
         if not uname:
             raise BBoxError("unable to find the uname executable.")
 
@@ -77,24 +60,6 @@ class Miscellaneous:
         ).stdout \
          .decode(locale.getpreferredencoding(False)) \
          .strip()
-    #end function
-
-    @staticmethod
-    def valid_arch(arch):
-        return arch in [
-            "aarch64",
-            "armv4t",
-            "armv6",
-            "armv7a",
-            "i686",
-            "mipsel",
-            "mips64el",
-            "powerpc",
-            "powerpc64le",
-            "s390x",
-            "riscv64",
-            "x86_64"
-        ]
     #end function
 
     @staticmethod
@@ -123,48 +88,6 @@ class Miscellaneous:
             return "riscv64-linux-musl"
         if re.match(r"^x86[-_]64$", machine):
             return "x86_64-bolt-linux-musl"
-    #end function
-
-    @staticmethod
-    def kill_chrooted_processes(chroot):
-        chroot = os.path.normpath(os.path.realpath(chroot))
-
-        for entry in os.listdir("/proc"):
-            try:
-                pid = int(entry)
-
-                proc_root = os.path.normpath(
-                    os.path.realpath("/proc/{}/root".format(entry))
-                )
-
-                proc_entry = "/proc/{}".format(entry)
-
-                if chroot == proc_root:
-                    os.kill(-pid, signal.SIGTERM)
-                    for i in range(10):
-                        os.lstat(proc_entry)
-                        time.sleep(0.05 * 1.1**i)
-
-                    os.kill(-pid, signal.SIGKILL)
-                    for i in range(10):
-                        os.lstat(proc_entry)
-                        time.sleep(0.05 * 1.1**i)
-                #end if
-            except (ValueError, ProcessLookupError, PermissionError,
-                        FileNotFoundError):
-                pass
-        #end for
-    #end function
-
-    @staticmethod
-    def bbox_do(*args):
-        sys.stdout.flush()
-        sys.stderr.flush()
-
-        try:
-            os.execvp("build-box-do", args)
-        except OSError as e:
-            raise BBoxError("failed to exec build-box-do: {}".format(str(e)))
     #end function
 
 #end class

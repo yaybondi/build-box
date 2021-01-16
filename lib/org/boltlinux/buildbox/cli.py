@@ -28,8 +28,9 @@ import sys
 import getopt
 import textwrap
 
-from org.boltlinux.buildbox.utils import switch
-from org.boltlinux.buildbox.utils.miscellaneous import Miscellaneous as Utils
+from org.boltlinux.buildbox.utils.distribution import Distribution
+from org.boltlinux.buildbox.utils.paths import Paths
+from org.boltlinux.buildbox.utils.switch import switch
 from org.boltlinux.buildbox.target import BBoxTarget
 from org.boltlinux.buildbox.error import BBoxError
 
@@ -77,13 +78,13 @@ class BBoxCLI:
 
         options = {
             "cache_dir":
-                self._get_cache_dir(),
+                Paths.cache_dir(),
             "release":
-                self._get_default_release(),
+                Distribution.latest_release(),
             "arch":
                 "x86_64",
             "target_prefix":
-                BBoxTarget.target_prefix(),
+                Paths.target_prefix(),
             "force":
                 False,
             "repo_base":
@@ -113,10 +114,7 @@ class BBoxCLI:
                     options["release"] = v.strip()
                     break
                 if case("-a", "--arch"):
-                    arch = v.strip()
-                    if arch == "x86-64":
-                        arch = "x86_64"
-                    options["arch"] = arch
+                    options["arch"] = v.strip().replace("-", "_")
                     break
                 if case("-t", "--targets"):
                     options["target_prefix"] = os.path.normpath(
@@ -135,12 +133,27 @@ class BBoxCLI:
             #end for
         #end for
 
+        release = options["release"]
+        arch    = options["arch"]
+
+        if not Distribution.valid_release(release):
+            raise BBoxError(
+                'unknown release name "{}".'.format(release)
+            )
+
+        if not Distribution.valid_arch(release, arch):
+            raise BBoxError(
+                'release "{}" does not support architecture "{}".'
+                .format(release, arch)
+            )
+
         if len(args) != 2:
             usage()
             sys.exit(EXIT_ERROR)
 
         target_name = args[0]
         target_spec = args[1]
+
         BBoxTarget.create(target_name, target_spec, **options)
     #end function
 
@@ -158,7 +171,7 @@ class BBoxCLI:
 
         options = {
             "target_prefix":
-                BBoxTarget.target_prefix()
+                Paths.target_prefix()
         }
 
         try:
@@ -204,7 +217,7 @@ class BBoxCLI:
 
         options = {
             "target_prefix":
-                BBoxTarget.target_prefix()
+                Paths.target_prefix()
         }
 
         try:
@@ -235,13 +248,5 @@ class BBoxCLI:
 
         BBoxTarget.delete(args, **options)
     #end function
-
-    # HELPER
-
-    def _get_cache_dir(self):
-        return os.path.join(Utils.homedir(), ".bolt", "cache")
-
-    def _get_default_release(self):
-        return "stable"
 
 #end class

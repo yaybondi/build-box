@@ -34,7 +34,6 @@ sys.path.insert(1, INSTALL_DIR + os.sep + 'lib')
 
 from org.boltlinux.buildbox.cli import BBoxCLI
 from org.boltlinux.buildbox.error import BBoxError
-from org.boltlinux.buildbox.utils.miscellaneous import Miscellaneous as Utils
 
 BBOX_VERSION = "1.0.0"
 BBOX_ERR_INVOCATION = 1
@@ -60,6 +59,16 @@ def print_usage():
     )
 #end function
 
+def bbox_do(*args):
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    try:
+        os.execvp("build-box-do", args)
+    except OSError as e:
+        raise BBoxError("failed to exec build-box-do: {}".format(str(e)))
+#end function
+
 if __name__ == "__main__":
     os.environ["BUILD_BOX_WRAPPER_A883DAFC"] = "1"
 
@@ -72,7 +81,7 @@ if __name__ == "__main__":
         command = sys.argv[1]
 
         if command in ["init", "login", "mount", "umount", "run"]:
-            Utils.bbox_do("build-box-do", *sys.argv[1:])
+            bbox_do("build-box-do", *sys.argv[1:])
         elif command in ["create", "list", "delete"]:
             BBoxCLI().execute_command(*sys.argv[1:])
         elif command in ["--help", "-h"]:

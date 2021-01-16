@@ -15,6 +15,7 @@ Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends},
  bolt-repo-keys,
  mount,
  opkg,
+ python3-bolt-distro-info,
  qemu-user-static-bolt,
  usign
 Description: management utility for Bolt Linux build sandboxes

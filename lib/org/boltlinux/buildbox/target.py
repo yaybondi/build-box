@@ -30,10 +30,11 @@ import subprocess
 import shutil
 import signal
 import sys
+import time
 
 from org.boltlinux.buildbox.bootstrap import BBoxBootstrap
 from org.boltlinux.buildbox.error import BBoxError
-from org.boltlinux.buildbox.utils.miscellaneous import Miscellaneous as Utils
+from org.boltlinux.buildbox.utils.paths import Paths
 
 class BBoxTarget:
 
@@ -50,9 +51,7 @@ class BBoxTarget:
         except subprocess.CalledProcessError as e:
             raise BBoxError(e.stderr.strip())
 
-        target_prefix = options.get(
-            "target_prefix", BBoxTarget.target_prefix()
-        )
+        target_prefix = options.get("target_prefix", Paths.target_prefix())
 
         if not os.path.isdir(target_prefix):
             try:
@@ -102,16 +101,20 @@ class BBoxTarget:
                 do_verify=options.get("do_verify", True),
                 cache_dir=options.get("cache_dir")
             )
+
             bootstrapper.bootstrap(
                 target_dir, target_spec, **options
             )
         except (KeyboardInterrupt, Exception):
+            old_sig_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
+
             try:
-                old_sig_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
                 cls.delete([target_name], **options)
-                signal.signal(signal.SIGINT, old_sig_handler)
             except Exception:
                 pass
+            finally:
+                signal.signal(signal.SIGINT, old_sig_handler)
+
             raise
         else:
             umount_cmd = shlex.split(
@@ -123,9 +126,7 @@ class BBoxTarget:
 
     @classmethod
     def list(cls, **options):
-        target_prefix = options.get(
-            "target_prefix", BBoxTarget.target_prefix()
-        )
+        target_prefix = options.get("target_prefix", Paths.target_prefix())
         if not os.path.isdir(target_prefix):
             return
 
@@ -142,12 +143,12 @@ class BBoxTarget:
                 if os.path.exists(shell):
                     shell_found = True
                     break
-            #end for
 
             if not shell_found:
                 machine = "defunct"
 
             etc_target = os.path.join(target_prefix, entry, "etc", "target")
+
             if not os.path.exists(etc_target):
                 machine = "defunct"
 
@@ -175,17 +176,13 @@ class BBoxTarget:
 
     @classmethod
     def _delete(cls, target_name, **options):
-        target_prefix = options.get(
-            "target_prefix", BBoxTarget.target_prefix()
-        )
+        target_prefix = options.get("target_prefix", Paths.target_prefix())
 
-        target_dir = os.path.normpath(
-            os.path.join(target_prefix, target_name)
-        )
+        target_dir = os.path.normpath(os.path.join(target_prefix, target_name))
         if not os.path.isdir(target_dir):
             raise BBoxError("target '{}' not found.".format(target_name))
 
-        Utils.kill_chrooted_processes(target_dir)
+        BBoxTarget._kill_chrooted_processes(target_dir)
 
         umount_cmd = shlex.split(
             "{} umount -t '{}' .".format(sys.argv[0], target_dir)
@@ -194,7 +191,7 @@ class BBoxTarget:
         if proc.returncode != 0:
             raise BBoxError("failed to remove bind mounts.")
 
-        homedir = Utils.homedir()
+        homedir = Paths.homedir()
 
         for subdir in ["dev", "proc", "sys", homedir.lstrip(os.sep)]:
             full_path = os.path.join(target_dir, subdir)
@@ -203,8 +200,6 @@ class BBoxTarget:
                     "the '{}' subdirectory is not empty, aborting."
                     .format(subdir)
                 )
-            #end if
-        #end for
 
         with open("/proc/mounts", "r", encoding="utf-8") as f:
             buf = f.read()
@@ -227,9 +222,34 @@ class BBoxTarget:
     #end function
 
     @classmethod
-    def target_prefix(cls):
-        return os.path.join(
-            "/var/lib/build-box/users", "{}".format(os.getuid()), "targets"
-        )
+    def _kill_chrooted_processes(cls, chroot):
+        chroot = os.path.normpath(os.path.realpath(chroot))
+
+        for entry in os.listdir("/proc"):
+            try:
+                pid = int(entry)
+
+                proc_root = os.path.normpath(
+                    os.path.realpath("/proc/{}/root".format(entry))
+                )
+
+                proc_entry = "/proc/{}".format(entry)
+
+                if chroot == proc_root:
+                    os.kill(-pid, signal.SIGTERM)
+                    for i in range(10):
+                        os.lstat(proc_entry)
+                        time.sleep(0.05 * 1.1**i)
+
+                    os.kill(-pid, signal.SIGKILL)
+                    for i in range(10):
+                        os.lstat(proc_entry)
+                        time.sleep(0.05 * 1.1**i)
+                #end if
+            except (ValueError, ProcessLookupError, PermissionError,
+                        FileNotFoundError):
+                pass
+        #end for
+    #end function
 
 #end class

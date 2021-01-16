@@ -30,7 +30,8 @@ import shutil
 import subprocess
 import tempfile
 
-from org.boltlinux.buildbox.utils.miscellaneous import Miscellaneous as Utils
+from org.boltlinux.buildbox.utils.paths import Paths
+from org.boltlinux.buildbox.utils.platform import Platform
 from org.boltlinux.buildbox.error import BBoxError
 
 OPKG_CONFIG_TEMPLATE = """\
@@ -81,36 +82,35 @@ class BBoxBootstrap:
 
     def __init__(self, release, arch, libc="musl", do_verify=True,
             cache_dir=None):
-        if not Utils.valid_arch(arch):
-            raise BBoxError("unknown target architecture: {}".format(arch))
-
-        self._release = release
-        self._arch = arch
-        self._libc = libc
+        self._release   = release
+        self._arch      = arch
+        self._libc      = libc
         self._do_verify = do_verify
-
-        if cache_dir:
-            self._cache_dir = cache_dir
-        else:
-            self._cache_dir = os.path.join(Utils.homedir(), ".bolt", "cache")
+        self._cache_dir = cache_dir or Paths.cache_dir()
     #end function
 
     def bootstrap(self, target_dir, specfile, force=False, **options):
-        if self._do_verify:
-            opt_check_sig = "option check_signature"
-        else:
-            opt_check_sig = ""
+        opt_check_sig = "option check_signature" if self._do_verify else ""
 
         context = {
-            "release": self._release,
-            "libc": self._libc,
-            "arch": self._arch,
-            "host_arch": Utils.uname("-m"),
-            "target_id": os.path.basename(target_dir),
-            "machine": self._arch,
-            "target_type": Utils.target_for_machine(self._arch),
-            "opt_check_sig": opt_check_sig,
-            "repo_base": options.get("repo_base")
+            "release":
+                self._release,
+            "libc":
+                self._libc,
+            "arch":
+                self._arch,
+            "host_arch":
+                Platform.uname("-m"),
+            "target_id":
+                os.path.basename(target_dir),
+            "machine":
+                self._arch,
+            "target_type":
+                Platform.target_for_machine(self._arch),
+            "opt_check_sig":
+                opt_check_sig,
+            "repo_base":
+                options.get("repo_base")
         }
 
         package_cache = self.package_cache()
@@ -125,17 +125,12 @@ class BBoxBootstrap:
 
         with tempfile.TemporaryDirectory(prefix="bbox-") as dirname:
             opkg_conf = os.path.join(dirname, "opkg.conf")
+
             with open(opkg_conf, "w+", encoding="utf-8") as f:
                 f.write(OPKG_CONFIG_TEMPLATE.format(**context))
+
             self._prepare_target(opkg_conf, target_dir, batches, **context)
         #end with
-    #end function
-
-    def package_cache(self):
-        return os.path.join(
-            self._cache_dir, "bolt", "dists", self._release,
-                self._arch, self._libc
-        )
     #end function
 
     # PRIVATE
@@ -152,9 +147,7 @@ class BBoxBootstrap:
         ]
 
         for dirname in dirs_to_create:
-            full_path = os.path.join(target_dir, dirname)
-            os.makedirs(full_path, exist_ok=True)
-        #end for
+            os.makedirs(os.path.join(target_dir, dirname), exist_ok=True)
 
         etc_target = os.path.join(target_dir, "etc", "target")
         with open(etc_target, "w+", encoding="utf-8") as f:
@@ -258,6 +251,13 @@ class BBoxBootstrap:
             batches.append((active_mode, active_batch))
 
         return batches
+    #end function
+
+    def package_cache(self):
+        return os.path.join(
+            Paths.cache_dir(), "bolt", "dists", self._release,
+                self._arch, self._libc
+        )
     #end function
 
 #end class
