@@ -30,8 +30,8 @@ import shutil
 import subprocess
 import tempfile
 
-from org.boltlinux.buildbox.utils.paths import Paths
-from org.boltlinux.buildbox.utils.platform import Platform
+from org.boltlinux.buildbox.misc.paths import Paths
+from org.boltlinux.buildbox.misc.platform import Platform
 from org.boltlinux.buildbox.error import BBoxError
 
 OPKG_CONFIG_TEMPLATE = """\
@@ -113,7 +113,7 @@ class BBoxBootstrap:
                 options.get("repo_base")
         }
 
-        package_cache = self.package_cache()
+        package_cache = self._package_cache()
         if not os.path.exists(package_cache):
             os.makedirs(package_cache)
 
@@ -253,7 +253,7 @@ class BBoxBootstrap:
         return batches
     #end function
 
-    def package_cache(self):
+    def _package_cache(self):
         return os.path.join(
             Paths.cache_dir(), "bolt", "dists", self._release,
                 self._arch, self._libc

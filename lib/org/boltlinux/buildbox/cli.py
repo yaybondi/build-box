@@ -28,9 +28,9 @@ import sys
 import getopt
 import textwrap
 
-from org.boltlinux.buildbox.utils.distribution import Distribution
-from org.boltlinux.buildbox.utils.paths import Paths
-from org.boltlinux.buildbox.utils.switch import switch
+from org.boltlinux.buildbox.misc.distribution import Distribution
+from org.boltlinux.buildbox.misc.paths import Paths
+from org.boltlinux.buildbox.misc.switch import switch
 from org.boltlinux.buildbox.target import BBoxTarget
 from org.boltlinux.buildbox.error import BBoxError
 

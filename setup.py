@@ -17,7 +17,7 @@ setup(
     license='MIT',
     packages=[
         'org.boltlinux.buildbox',
-        'org.boltlinux.buildbox.utils',
+        'org.boltlinux.buildbox.misc',
     ],
     package_dir={'': 'lib'},
     data_files=[
