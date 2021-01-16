@@ -1,3 +1,9 @@
+build-box-utils (0.9.4-1bolt1.1) unstable; urgency=medium
+
+  * Cleanups and refactoring.
+
+ -- Tobias Koch <tobias.koch@gmail.com>  Sat, 16 Jan 2021 20:16:31 +0300
+
 build-box-utils (0.9.3-1bolt1) unstable; urgency=medium
 
   * Pick up tools packages from tools/<host_arch>
