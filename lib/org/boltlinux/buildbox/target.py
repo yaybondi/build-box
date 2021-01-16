@@ -198,7 +198,7 @@ class BBoxTarget:
             if os.path.exists(full_path) and os.listdir(full_path):
                 raise BBoxError(
                     "the '{}' subdirectory is not empty, aborting."
-                    .format(target_name)
+                    .format(subdir)
                 )
 
         with open("/proc/mounts", "r", encoding="utf-8") as f:
