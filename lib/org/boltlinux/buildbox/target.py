@@ -76,7 +76,7 @@ class BBoxTarget:
                 else:
                     raise BBoxError(
                         "target '{}' already exists, aborting."
-                        .format(target_dir)
+                        .format(target_name)
                     )
                 #end if
             #end if
