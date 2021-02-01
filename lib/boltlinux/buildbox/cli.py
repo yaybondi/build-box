@@ -28,11 +28,11 @@ import sys
 import getopt
 import textwrap
 
-from org.boltlinux.buildbox.misc.distribution import Distribution
-from org.boltlinux.buildbox.misc.paths import Paths
-from org.boltlinux.buildbox.misc.switch import switch
-from org.boltlinux.buildbox.target import BBoxTarget
-from org.boltlinux.buildbox.error import BBoxError
+from boltlinux.buildbox.misc.distribution import Distribution
+from boltlinux.buildbox.misc.paths import Paths
+from boltlinux.buildbox.target import BBoxTarget
+from boltlinux.buildbox.error import BBoxError
+from boltlinux.miscellaneous.switch import switch
 
 EXIT_OK = 0
 EXIT_ERROR = 1

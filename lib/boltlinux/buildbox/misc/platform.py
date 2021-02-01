@@ -28,7 +28,7 @@ import os
 import re
 import subprocess
 
-from org.boltlinux.buildbox.error import BBoxError
+from boltlinux.buildbox.error import BBoxError
 
 class Platform:
 

@@ -31,9 +31,9 @@ import shutil
 import subprocess
 import tempfile
 
-from org.boltlinux.buildbox.misc.paths import Paths
-from org.boltlinux.buildbox.misc.platform import Platform
-from org.boltlinux.buildbox.error import BBoxError
+from boltlinux.buildbox.misc.paths import Paths
+from boltlinux.buildbox.misc.platform import Platform
+from boltlinux.buildbox.error import BBoxError
 
 OPKG_CONFIG_TEMPLATE = """\
 ##############################################################################

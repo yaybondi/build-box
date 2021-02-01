@@ -25,8 +25,8 @@
 
 import os
 
-from org.boltlinux.archive.misc.userinfo import UserInfo
-from org.boltlinux.buildbox.error import BBoxError
+from boltlinux.miscellaneous.userinfo import UserInfo
+from boltlinux.buildbox.error import BBoxError
 
 class Paths:
 
@@ -40,7 +40,11 @@ class Paths:
 
     @staticmethod
     def cache_dir():
-        return os.path.join(Paths.homedir(), ".bolt", "cache")
+        cache_dir = UserInfo.cache_dir()
+        if not cache_dir:
+            raise BBoxError("unable to determine cache directory.")
+        return cache_dir
+    #end function
 
     @staticmethod
     def target_prefix():

@@ -23,9 +23,9 @@
 # THE SOFTWARE.
 #
 
-from org.boltlinux.archive.config.distroinfo import DistroInfo
-from org.boltlinux.archive.config.error import DistroInfoError
-from org.boltlinux.buildbox.error import BBoxError
+from boltlinux.archive.config.distroinfo import DistroInfo
+from boltlinux.archive.config.error import DistroInfoError
+from boltlinux.buildbox.error import BBoxError
 
 class Distribution:
 

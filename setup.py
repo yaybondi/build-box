@@ -16,8 +16,8 @@ setup(
     author_email='tobias.koch@gmail.com',
     license='MIT',
     packages=[
-        'org.boltlinux.buildbox',
-        'org.boltlinux.buildbox.misc',
+        'boltlinux.buildbox',
+        'boltlinux.buildbox.misc',
     ],
     package_dir={'': 'lib'},
     data_files=[

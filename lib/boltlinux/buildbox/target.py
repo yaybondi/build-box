@@ -32,9 +32,9 @@ import signal
 import sys
 import time
 
-from org.boltlinux.buildbox.bootstrap import BBoxBootstrap
-from org.boltlinux.buildbox.error import BBoxError
-from org.boltlinux.buildbox.misc.paths import Paths
+from boltlinux.buildbox.bootstrap import BBoxBootstrap
+from boltlinux.buildbox.error import BBoxError
+from boltlinux.buildbox.misc.paths import Paths
 
 class BBoxTarget:
 
