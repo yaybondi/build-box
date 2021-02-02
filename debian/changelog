@@ -1,3 +1,10 @@
+build-box-utils (0.9.5-1bolt1) unstable; urgency=medium
+
+  * Depend on new distro-tools packages
+  * Copy appropriate QEMU static binary into target
+
+ -- Tobias Koch <tobias.koch@gmail.com>  Tue, 02 Feb 2021 22:36:13 +0300
+
 build-box-utils (0.9.4.2-1bolt1) unstable; urgency=medium
 
   * Cosmetics: change an error message.
