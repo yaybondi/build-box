@@ -44,7 +44,7 @@ _build_box_arg_complete() {
         '<arch>')
             COMPREPLY=(
                 $(
-                    compgen -W "aarch64 armv6 armv7a i686 mipsel mips64el powerpc64le s390x x86_64" \
+                    compgen -W "aarch64 armv6 armv7a mips64el powerpc64le riscv64 s390x x86_64" \
                         -- ${COMP_WORDS[COMP_CWORD]}
                 )
             )
