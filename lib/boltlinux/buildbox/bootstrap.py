@@ -312,9 +312,4 @@ class BBoxBootstrap:
         return batches
     #end function
 
-    def _package_cache(self):
-        return os.path.join(
-        )
-    #end function
-
 #end class
