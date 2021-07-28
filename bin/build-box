@@ -111,7 +111,7 @@ if __name__ == "__main__":
         elif command in ["--help", "-h"]:
             print_usage()
         else:
-            sys.stderr.write("build-box: unknown command '%s'.\n" % command)
+            LOGGER.error('unknown command "{}".'.format(command))
             sys.exit(BUILD_BOX_ERR_INVOCATION)
         #end if
     except BoltError as e:
