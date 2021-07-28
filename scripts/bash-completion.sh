@@ -149,7 +149,7 @@ _build_box_arg_complete() {
 }
 
 _build_box_opt_complete() {
-    local _opts="-h -help"
+    local _opts="-h --help"
 
     case "${COMP_WORDS[1]}" in
         create)
