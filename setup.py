@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
-"""Bolt OS packaging scripts and tools."""
+"""Bolt Linux build sandbox management utility"""
 
-from setuptools import setup, find_packages
-from codecs import open
-from os import path
+import os
 
-here = path.abspath(path.dirname(__file__))
+from setuptools import setup
+
+here = os.path.abspath(os.path.dirname(__file__))
+
+VERSION = os.environ.get("BUILD_BOX_VERSION", "0.0.0")
 
 setup(
     name='build-box-utils',
-    version='1.0.0',
-    url='https://github.com/tobijk/build-box-utils',
+    version=VERSION,
+    url='https://github.com/boltlinux/build-box-utils',
     author='Tobias Koch',
     author_email='tobias.koch@gmail.com',
     license='MIT',
@@ -33,7 +35,7 @@ setup(
         'Programming Language :: Python :: 3'
     ],
 
-    keywords='boltOS cross-compile rootstrap',
-    description='Build Box NG utilities for managing Bolt OS build roots',
-    long_description='Build Box NG utilities for managing Bolt OS build roots',
+    keywords='Bolt Linux cross-compile bootstrap',
+    description='Bolt Linux build sandbox management utility',
+    long_description='Bolt Linux build sandbox management utility',
 )
