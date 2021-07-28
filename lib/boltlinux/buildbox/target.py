@@ -2,7 +2,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2019 Tobias Koch <tobias.koch@gmail.com>
+# Copyright (c) 2019-2021 Tobias Koch <tobias.koch@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -100,7 +100,7 @@ class BuildBoxTarget:
             old_sig_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
 
             try:
-                cls.delete([target_name], **kwargs)
+                cls._delete(target_name, **kwargs)
             except Exception:
                 pass
             finally:
