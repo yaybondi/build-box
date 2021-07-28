@@ -72,6 +72,7 @@ class BuildBoxTarget:
                     "failed to create target prefix '{}': {}"
                     .format(target_prefix, str(e))
                 )
+        #end if
 
         target_dir = os.path.join(target_prefix, target_name)
 
@@ -86,7 +87,13 @@ class BuildBoxTarget:
             #end if
         #end if
 
-        os.makedirs(target_dir)
+        try:
+            os.mkdir(target_dir)
+        except OSError as e:
+            raise BuildBoxError(
+                'failed to create target folder "{}": {}'
+                .format(target_dir, e)
+            )
 
         try:
             image_gen = BuildBoxGenerator(copy_qemu=True, **kwargs)
