@@ -1,7 +1,6 @@
 #ifndef BBOX_H_INCLUDED
 #define BBOX_H_INCLUDED
 
-#define BBOX_VERSION "1.0.0"
 #define BBOX_ERR_INVOCATION 1
 #define BBOX_ERR_RUNTIME    2
 

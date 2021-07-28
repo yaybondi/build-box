@@ -38,20 +38,19 @@
 void bbox_umount_usage()
 {
     printf(
-        "Build Box NG Management Utility, Version %s                             \n"
-        "Copyright (c) 2017-2020 Tobias Koch <tobias.koch@gmail.com>             \n"
-        "                                                                        \n"
-        "Usage: build-box umount [OPTIONS] <target-name>                         \n"
-        "                                                                        \n"
-        "OPTIONS:                                                                \n"
-        "                                                                        \n"
-        " -h,--help             Print this help message and exit immediately.    \n"
-        "                                                                        \n"
-        " -u,--umount <fstype>  Mount 'dev', 'proc', 'sys' or 'home'. For the    \n"
-        "                       'mount' command, if this option is not specified,\n"
-        "                       then the default is to umount all of them.       \n"
-        "                                                                        \n",
-        BBOX_VERSION
+        "                                                                          \n"
+        "USAGE:                                                                    \n"
+        "                                                                          \n"
+        "  build-box umount [OPTIONS] <target-name>                                \n"
+        "                                                                          \n"
+        "OPTIONS:                                                                  \n"
+        "                                                                          \n"
+        "  -h, --help             Print this help message and exit immediately.    \n"
+        "                                                                          \n"
+        "  -u, --umount <fstype>  Mount 'dev', 'proc', 'sys' or 'home'. For the    \n"
+        "                         'mount' command, if this option is not specified,\n"
+        "                         then the default is to umount all of them.       \n"
+        "                                                                          \n"
     );
 }
 

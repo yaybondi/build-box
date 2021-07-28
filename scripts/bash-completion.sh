@@ -32,8 +32,8 @@ _build_box_arg_complete() {
         -*)
             _opt_arg=$(
                 $_build_box_cmd --help | \
-                    grep -E '^ -' | \
-                    sed -E -e 's/^\s*/,/g' -e 's/ /,/' -e 's/  .*$//g' | \
+                    grep -E '^  -' | \
+                    sed -E -e 's/^\s*/,/g' -e 's/  .*$//g' -e 's/,\s+/,/g' -e 's/ /,/g' -e 's/  .*$//g' | \
                     grep -E -- ",$_previous_arg," | \
                     cut -d',' -f4
             )
@@ -87,8 +87,8 @@ _build_box_arg_complete() {
             -*)
                 _opt_arg=$(
                     $_build_box_cmd --help | \
-                        grep -E '^ -' | \
-                        sed -E -e 's/^\s*/,/g' -e 's/ /,/' -e 's/  .*$//g' | \
+                        grep -E '^  -' | \
+                        sed -E -e 's/^\s*/,/g' -e 's/  .*$//g' -e 's/,\s+/,/g' -e 's/ /,/g' -e 's/  .*$//g' | \
                         grep -E -- ",$_varg," | \
                         cut -d',' -f4
                 )
@@ -115,8 +115,8 @@ _build_box_arg_complete() {
 
     local _expected_arg=$(
         $_build_box_cmd --help | \
-            grep -E '^Usage:' | \
-            sed -E -e 's/^Usage:\s*//' -e 's/\[OPTIONS\]//' -e 's/\s+/ /g' | \
+            grep -E '^  build-box ' | \
+            sed -E -e 's/^\s*//' -e 's/\[OPTIONS\]//' -e 's/\s+/ /g' | \
             cut -d' ' -f"$(($_varg_counter))"
     )
 
@@ -153,16 +153,19 @@ _build_box_opt_complete() {
 
     case "${COMP_WORDS[1]}" in
         create)
-            _opts="$_opts -r --release -a --arch -t --targets --force --repo-base --no-verify"
+            _opts="$_opts -r --release -a --arch --force --repo-base --no-verify"
             ;;
-        delete|list|mount)
-            _opts="$_opts -t --targets"
+        delete|list)
+            _opts="$_opts"
             ;;
         login|run)
-            _opts="$_opts -t --targets -n --no-mount --no-file-copy"
+            _opts="$_opts -n --no-mount --no-file-copy"
             ;;
-        mount|umount)
-            _opts="$_opts -t --targets -m --mount"
+        mount)
+            _opts="$_opts -m --mount"
+            ;;
+        umount)
+            _opts="$_opts -u --umount"
             ;;
     esac
 

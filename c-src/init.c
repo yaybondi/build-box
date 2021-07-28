@@ -35,16 +35,15 @@
 void bbox_init_usage()
 {
     printf(
-        "Build Box NG Management Utility, Version %s                             \n"
-        "Copyright (c) 2017-2020 Tobias Koch <tobias.koch@gmail.com>             \n"
         "                                                                        \n"
-        "Usage: build-box init [OPTIONS]                                         \n"
+        "USAGE:                                                                  \n"
+        "                                                                        \n"
+        "  build-box init [OPTIONS]                                              \n"
         "                                                                        \n"
         "OPTIONS:                                                                \n"
         "                                                                        \n"
         " -h,--help             Print this help message and exit immediately.    \n"
-        "                                                                        \n",
-        BBOX_VERSION
+        "                                                                        \n"
     );
 }
 

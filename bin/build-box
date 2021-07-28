@@ -49,7 +49,7 @@ def print_usage():
         """\
         Copyright (c) 2017-2021 Tobias Koch <tobias.koch@gmail.com>
 
-        This is the Build Box NG Management utility.
+        This is the Build Box NG management utility.
 
         USAGE:
 

@@ -32,10 +32,13 @@
 void bbox_main_usage()
 {
     printf(
-        "Build Box NG Management Utility, Version %s                         \n"
-        "Copyright (c) 2017-2020 Tobias Koch <tobias.koch@gmail.com>         \n"
+        "Copyright (c) 2017-2021 Tobias Koch <tobias.koch@gmail.com>         \n"
         "                                                                    \n"
-        "Usage: build-box <command> [ARGS]                                   \n"
+        "This is the Build Box NG management utility.                        \n"
+        "                                                                    \n"
+        "USAGE:                                                              \n"
+        "                                                                    \n"
+        "  build-box [OPTIONS] <command> [ARGS]                              \n"
         "                                                                    \n"
         "COMMANDS:                                                           \n"
         "                                                                    \n"
@@ -44,8 +47,13 @@ void bbox_main_usage()
         "  mount    Mount homedir and special file systems (dev, proc, sys). \n"
         "  umount   Unmount homedir and special file systems.                \n"
         "  run      Execute a command chrooted inside a target.              \n"
-        "                                                                    \n",
-        BBOX_VERSION
+        "                                                                    \n"
+        "OPTIONS:                                                            \n"
+        "                                                                    \n"
+        "  -h, --help    Print this help message and exit.                   \n"
+        "                                                                    \n"
+        "Type `build-box <command> --help` for more information about        \n"
+        "individual commands.                                                \n"
     );
 }
 

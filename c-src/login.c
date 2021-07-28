@@ -35,23 +35,22 @@
 void bbox_login_usage()
 {
     printf(
-        "Build Box NG Management Utility, Version %s                             \n"
-        "Copyright (c) 2017-2020 Tobias Koch <tobias.koch@gmail.com>             \n"
         "                                                                        \n"
-        "Usage: build-box login [OPTIONS] <target-name>                          \n"
+        "USAGE:                                                                  \n"
+        "                                                                        \n"
+        "  build-box login [OPTIONS] <target-name>                               \n"
         "                                                                        \n"
         "OPTIONS:                                                                \n"
         "                                                                        \n"
-        " -h,--help             Print this help message and exit immediately.    \n"
+        "  -h, --help           Print this help message and exit immediately.    \n"
         "                                                                        \n"
-        " -n,--no-mount         Don't bind mount homedir and special filesystems.\n"
+        "  -n, --no-mount       Don't bind mount homedir and special filesystems.\n"
         "                       This does *not* unmount previously mounted       \n"
         "                       file systems. Use 'bbox-do umount' for that.     \n"
         "                                                                        \n"
-        " --no-file-copy        Don't copy /etc/passwd, group and resolv.conf    \n"
+        "  --no-file-copy       Don't copy /etc/passwd, group and resolv.conf    \n"
         "                       from host.                                       \n"
-        "                                                                        \n",
-        BBOX_VERSION
+        "                                                                        \n"
     );
 }
 

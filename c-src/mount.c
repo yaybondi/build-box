@@ -38,20 +38,19 @@
 void bbox_mount_usage()
 {
     printf(
-        "Build Box NG Management Utility, Version %s                             \n"
-        "Copyright (c) 2017-2020 Tobias Koch <tobias.koch@gmail.com>             \n"
-        "                                                                        \n"
-        "Usage: build-box mount [OPTIONS] <target-name>                          \n"
-        "                                                                        \n"
-        "OPTIONS:                                                                \n"
-        "                                                                        \n"
-        " -h,--help             Print this help message and exit immediately.    \n"
-        "                                                                        \n"
-        " -m,--mount <fstype>   Mount 'dev', 'proc', 'sys' or 'home'. For the    \n"
-        "                       'mount' command, if this option is not specified,\n"
-        "                       then the default is to mount all of them.        \n"
-        "                                                                        \n",
-        BBOX_VERSION
+        "                                                                         \n"
+        "USAGE:                                                                   \n"
+        "                                                                         \n"
+        "  build-box mount [OPTIONS] <target-name>                                \n"
+        "                                                                         \n"
+        "OPTIONS:                                                                 \n"
+        "                                                                         \n"
+        "  -h, --help            Print this help message and exit immediately.    \n"
+        "                                                                         \n"
+        "  -m, --mount <fstype>  Mount 'dev', 'proc', 'sys' or 'home'. For the    \n"
+        "                        'mount' command, if this option is not specified,\n"
+        "                        then the default is to mount all of them.        \n"
+        "                                                                         \n"
     );
 }
 
