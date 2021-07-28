@@ -17,6 +17,7 @@ Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends},
  opkg,
  python3-bolt-misc,
  python3-bolt-distro-info,
+ python3-bolt-image-gen,
  qemu-user-static-bolt,
  usign
 Description: management utility for Bolt Linux build chroots
