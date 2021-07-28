@@ -75,20 +75,18 @@ class BuildBoxTarget:
 
         target_dir = os.path.join(target_prefix, target_name)
 
-        if not os.path.exists(target_dir):
-            os.makedirs(target_dir)
-        else:
-            if os.listdir(target_dir):
-                if kwargs.get("force"):
-                    cls.delete([target_name], **kwargs)
-                else:
-                    raise BuildBoxError(
-                        "target '{}' already exists, aborting."
-                        .format(target_name)
-                    )
-                #end if
+        if os.path.exists(target_dir) and os.listdir(target_dir):
+            if kwargs.get("force"):
+                cls.delete([target_name], **kwargs)
+            else:
+                raise BuildBoxError(
+                    "target '{}' already exists, aborting."
+                    .format(target_name)
+                )
             #end if
         #end if
+
+        os.makedirs(target_dir)
 
         try:
             image_gen = BuildBoxGenerator(copy_qemu=True, **kwargs)
