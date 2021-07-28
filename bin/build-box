@@ -3,7 +3,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>
+# Copyright (c) 2017-2021 Tobias Koch <tobias.koch@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -24,77 +24,101 @@
 # THE SOFTWARE.
 #
 
+import logging
 import os
 import sys
+import textwrap
 
 # make build-box relocatable
 INSTALL_DIR = os.path.normpath(os.path.dirname(
     os.path.realpath(sys.argv[0])) + os.sep + ".." )
 sys.path.insert(1, INSTALL_DIR + os.sep + 'lib')
 
-from boltlinux.buildbox.cli import BBoxCLI
-from boltlinux.buildbox.error import BBoxError
+from boltlinux.buildbox.cli import BuildBoxCLI
+from boltlinux.buildbox.error import BuildBoxError
+from boltlinux.error import BoltError
+from boltlinux.miscellaneous.logformatter import LogFormatter
 
-BBOX_VERSION = "1.0.0"
-BBOX_ERR_INVOCATION = 1
-BBOX_ERR_RUNTIME    = 2
+BUILD_BOX_ERR_INVOCATION = 1
+BUILD_BOX_ERR_RUNTIME    = 2
+
+LOGGER = logging.getLogger()
 
 def print_usage():
-    print(
-        "Build Box NG Management Utility, Version %s                         \n"
-        "Copyright (c) 2017-2019 Tobias Koch <tobias.koch@gmail.com>         \n"
-        "                                                                    \n"
-        "Usage: build-box <command> [ARGS]                                   \n"
-        "                                                                    \n"
-        "COMMANDS:                                                           \n"
-        "                                                                    \n"
-        "  create   Create new target.                                       \n"
-        "  delete   Remove a target.                                         \n"
-        "  list     List all existing targets.                               \n"
-        "  login    Chroot into a target.                                    \n"
-        "  mount    Mount homedir and special file systems (dev, proc, sys). \n"
-        "  umount   Unmount homedir and special file systems.                \n"
-        "  run      Execute a command chrooted inside a target.              \n"
-        % BBOX_VERSION
-    )
+    print(textwrap.dedent(
+        """\
+        Copyright (c) 2017-2021 Tobias Koch <tobias.koch@gmail.com>
+
+        This is the Build Box NG Management utility.
+
+        USAGE:
+
+          build-box [OPTIONS] <command> [ARGS]
+
+        COMMANDS:
+
+          create        Create new target.
+          delete        Remove a target.
+          list          List all existing targets.
+          login         Chroot into a target.
+          mount         Mount homedir and special file systems (dev, proc, sys).
+          umount        Unmount homedir and special file systems.
+          run           Execute a command chrooted inside a target.
+
+        OPTIONS:
+
+          -h, --help    Print this help message and exit.
+
+        Type `build-box <command> --help` for more information about
+        individual commands.\
+        """
+    ))
 #end function
 
-def bbox_do(*args):
-    sys.stdout.flush()
-    sys.stderr.flush()
-
-    try:
-        os.execvp("build-box-do", args)
-    except OSError as e:
-        raise BBoxError("failed to exec build-box-do: {}".format(str(e)))
+def configure_logging():
+    fmt = LogFormatter("build-box")
+    handler = logging.StreamHandler()
+    handler.setFormatter(fmt)
+    LOGGER.addHandler(handler)
+    LOGGER.setLevel(logging.INFO)
 #end function
 
 if __name__ == "__main__":
     os.environ["BUILD_BOX_WRAPPER_A883DAFC"] = "1"
 
     try:
+        configure_logging()
+
         if len(sys.argv) < 2:
             print_usage()
-            sys.exit(BBOX_ERR_INVOCATION)
+            sys.exit(BUILD_BOX_ERR_INVOCATION)
         #end if
 
         command = sys.argv[1]
 
+        sys.stdout.flush()
+        sys.stderr.flush()
+
         if command in ["init", "login", "mount", "umount", "run"]:
-            bbox_do("build-box-do", *sys.argv[1:])
+            try:
+                os.execvp("build-box-do", sys.argv[:])
+            except OSError as e:
+                raise BuildBoxError(
+                    "failed to exec build-box-do: {}".format(str(e))
+                )
         elif command in ["create", "list", "delete"]:
-            BBoxCLI().execute_command(*sys.argv[1:])
+            BuildBoxCLI().execute_command(*sys.argv[1:])
         elif command in ["--help", "-h"]:
             print_usage()
         else:
             sys.stderr.write("build-box: unknown command '%s'.\n" % command)
-            sys.exit(BBOX_ERR_INVOCATION)
+            sys.exit(BUILD_BOX_ERR_INVOCATION)
         #end if
-    except BBoxError as e:
-        sys.stderr.write("build-box: {}\n".format(str(e)))
-        sys.exit(BBOX_ERR_RUNTIME)
+    except BoltError as e:
+        LOGGER.error(e)
+        sys.exit(BUILD_BOX_ERR_RUNTIME)
     except KeyboardInterrupt:
-        sys.stderr.write("build-box: caught keyboard interrupt, exiting.\n")
-        sys.exit(BBOX_ERR_RUNTIME)
+        LOGGER.warning("caught keyboard interrupt, exiting.")
+        sys.exit(0)
     #end try
 #end __main__

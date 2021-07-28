@@ -23,5 +23,7 @@
 # THE SOFTWARE.
 #
 
-class BBoxError(Exception):
+from boltlinux.error import BoltError
+
+class BuildBoxError(BoltError):
     pass

@@ -2,7 +2,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2019 Tobias Koch <tobias.koch@gmail.com>
+# Copyright (c) 2021 Tobias Koch <tobias.koch@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,38 +23,43 @@
 # THE SOFTWARE.
 #
 
-from boltlinux.archive.config.distroinfo import DistroInfo
-from boltlinux.archive.config.error import DistroInfoError
+import logging
+import subprocess
+import sys
+
 from boltlinux.buildbox.error import BuildBoxError
+from boltlinux.osimage.sysroot import Sysroot as BaseSysroot
 
-class Distribution:
+LOGGER = logging.getLogger(__name__)
 
-    @staticmethod
-    def valid_release(name):
-        try:
-            return name in DistroInfo().list(supported=True)
-        except DistroInfoError as e:
-            BuildBoxError(str(e))
+class Sysroot(BaseSysroot):
+
+    def __init__(self, sysroot):
+        super().__init__(sysroot)
+
+    def __enter__(self):
+        cmd = [sys.argv[0], "mount", "-t", self.sysroot, "."]
+        for mountpoint in self.MOUNTPOINTS:
+            cmd.insert(2, "-m")
+            cmd.insert(3, mountpoint)
+
+        proc = subprocess.run(cmd)
+        if proc.returncode != 0:
+            raise BuildBoxError("failed to set up bind mounts.")
+
+        return self
     #end function
 
-    @staticmethod
-    def latest_release():
-        try:
-            return list(DistroInfo().list(supported=True).keys())[-1]
-        except DistroInfoError as e:
-            raise BuildBoxError(str(e))
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.terminate_processes()
+        self.umount_all()
+        return False
     #end function
 
-    @staticmethod
-    def valid_arch(release, arch, libc="musl"):
-        try:
-            info = DistroInfo().find(release=release)
-        except DistroInfoError as e:
-            raise BuildBoxError(str(e))
-
-        return arch in info \
-            .get("supported-architectures", {}) \
-            .get(libc, [])
+    def umount_all(self):
+        proc = subprocess.run([sys.argv[0], "umount", "-t", self.sysroot, "."])
+        if proc.returncode != 0:
+            raise BuildBoxError("failed to release bind mounts.")
     #end function
 
 #end class

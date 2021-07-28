@@ -30,57 +30,51 @@ import textwrap
 
 from boltlinux.buildbox.misc.distribution import Distribution
 from boltlinux.buildbox.misc.paths import Paths
-from boltlinux.buildbox.target import BBoxTarget
-from boltlinux.buildbox.error import BBoxError
+from boltlinux.buildbox.target import BuildBoxTarget
+from boltlinux.buildbox.error import BuildBoxError
 from boltlinux.miscellaneous.switch import switch
 
 EXIT_OK = 0
 EXIT_ERROR = 1
 
-class BBoxCLI:
+class BuildBoxCLI:
 
-    def execute_command(self, *args):
-        command = args[0]
-
-        for case in switch(command):
-            if case("create"):
-                self.create(*args[1:])
-                break
-            if case("list"):
-                self.list(*args[1:])
-                break
-            if case("delete"):
-                self.delete(*args[1:])
-                break
-            if case():
-                raise BBoxError("invalid CLI command: {}".format(command))
-        #end switch
-    #end function
+    def execute_command(self, command, *args):
+        getattr(self, command)(*args)
 
     def create(self, *args):
         def usage():
             print(textwrap.dedent(
                 """
-                Usage: build-box create [OPTIONS] <new-target-name> <spec>
+                USAGE:
+
+                  build-box create [OPTIONS] <new-target-name> <spec> ...
 
                 OPTIONS:
 
-                 -h,--help            Print this help message and exit immediately.
-                 -r,--release <name>  The name of the release to bootstrap (default: stable)
-                 -a,--arch <arch>     The architecture to bootstrap (default: x86_64)
-                 --force              Overwrite any existing target with the same name.
-                 --repo-base <url>    Repository base URL up to and including the "repo"
-                                      folder.
-                 --no-verify          Do not verify package list signatures.
+                  -h, --help             Print this help message and exit immediately.
+
+                  -r, --release <name>   The name of the release to bootstrap, e.g. "ollie"
+                                         (defaults to latest).
+                  -a, --arch <arch>      The architecture to bootstrap
+                                         (defaults to host arch).
+
+                  --repo-base <url>      Repository base URL up to and including the
+                                         "dists" folder.
+
+                  --force                Overwrite an existing target with the same name.
+                  --no-verify            Do not verify package list signatures.
                 """  # noqa
             ))
         #end inline function
 
-        options = {
+        kwargs = {
             "cache_dir":
                 Paths.cache_dir(),
             "release":
                 Distribution.latest_release(),
+            "libc":
+                "musl",
             "arch":
                 "x86_64",
             "target_prefix":
@@ -95,10 +89,8 @@ class BBoxCLI:
 
         try:
             opts, args = getopt.getopt(
-                args, "hr:a:t:", [
-                    "release=", "arch=", "targets=", "force", "repo-base=",
-                    "no-verify"
-                ]
+                args, "hr:a:t:", ["release=", "arch=", "targets=", "force",
+                    "repo-base=", "no-verify"]
             )
         except getopt.GetoptError:
             usage()
@@ -111,38 +103,38 @@ class BBoxCLI:
                     sys.exit(EXIT_OK)
                     break
                 if case("-r", "--release"):
-                    options["release"] = v.strip()
+                    kwargs["release"] = v.strip()
                     break
                 if case("-a", "--arch"):
-                    options["arch"] = v.strip().replace("-", "_")
+                    kwargs["arch"] = v.strip().replace("-", "_")
                     break
                 if case("-t", "--targets"):
-                    options["target_prefix"] = os.path.normpath(
+                    kwargs["target_prefix"] = os.path.normpath(
                         os.path.realpath(v.strip())
                     )
                     break
                 if case("--force"):
-                    options["force"] = True
+                    kwargs["force"] = True
                     break
                 if case("--repo-base"):
-                    options["repo_base"] = v.strip()
+                    kwargs["repo_base"] = v.strip()
                     break
                 if case("--no-verify"):
-                    options["do_verify"] = False
+                    kwargs["do_verify"] = False
                     break
             #end for
         #end for
 
-        release = options["release"]
-        arch    = options["arch"]
+        release, libc, arch = kwargs["release"], kwargs["libc"], kwargs["arch"]
 
         if not Distribution.valid_release(release):
-            raise BBoxError(
-                'unknown release name "{}".'.format(release)
+            raise BuildBoxError(
+                'release "{}" not found, run `bolt-distro-info refresh -r`.'
+                .format(release)
             )
 
-        if not Distribution.valid_arch(release, arch):
-            raise BBoxError(
+        if not Distribution.valid_arch(release, arch, libc=libc):
+            raise BuildBoxError(
                 'release "{}" does not support architecture "{}".'
                 .format(release, arch)
             )
@@ -151,25 +143,24 @@ class BBoxCLI:
             usage()
             sys.exit(EXIT_ERROR)
 
-        target_name = args[0]
-        target_spec = args[1]
-
-        BBoxTarget.create(target_name, target_spec, **options)
+        BuildBoxTarget.create(args[0], *args[1:], **kwargs)
     #end function
 
     def list(self, *args):
         def usage():
             print(textwrap.dedent(
                 """
-                Usage: build-box list [OPTIONS]
+                USAGE:
+
+                  build-box list [OPTIONS]
 
                 OPTIONS:
 
-                 -h,--help           Print this help message and exit immediately.
+                  -h, --help      Print this help message and exit immediately.
                 """  # noqa
             ))
 
-        options = {
+        kwargs = {
             "target_prefix":
                 Paths.target_prefix()
         }
@@ -189,7 +180,7 @@ class BBoxCLI:
                     sys.exit(EXIT_OK)
                     break
                 if case("-t", "--targets"):
-                    options["target_prefix"] = os.path.normpath(
+                    kwargs["target_prefix"] = os.path.normpath(
                         os.path.realpath(v.strip())
                     )
                     break
@@ -200,22 +191,24 @@ class BBoxCLI:
             usage()
             sys.exit(EXIT_ERROR)
 
-        BBoxTarget.list(**options)
+        BuildBoxTarget.list(**kwargs)
     #end function
 
     def delete(self, *args):
         def usage():
             print(textwrap.dedent(
                 """
-                Usage: build-box delete [OPTIONS] <target-name> ...
+                USAGE:
+
+                  build-box delete [OPTIONS] <target-name> ...
 
                 OPTIONS:
 
-                 -h,--help           Print this help message and exit immediately.
+                  -h, --help      Print this help message and exit immediately.
                 """  # noqa
             ))
 
-        options = {
+        kwargs = {
             "target_prefix":
                 Paths.target_prefix()
         }
@@ -235,7 +228,7 @@ class BBoxCLI:
                     sys.exit(EXIT_OK)
                     break
                 if case("-t", "--targets"):
-                    options["target_prefix"] = os.path.normpath(
+                    kwargs["target_prefix"] = os.path.normpath(
                         os.path.realpath(v.strip())
                     )
                     break
@@ -246,7 +239,7 @@ class BBoxCLI:
             usage()
             sys.exit(EXIT_ERROR)
 
-        BBoxTarget.delete(args, **options)
+        BuildBoxTarget.delete(args, **kwargs)
     #end function
 
 #end class

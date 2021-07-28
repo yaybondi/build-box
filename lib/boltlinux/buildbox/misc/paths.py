@@ -26,7 +26,7 @@
 import os
 
 from boltlinux.miscellaneous.userinfo import UserInfo
-from boltlinux.buildbox.error import BBoxError
+from boltlinux.buildbox.error import BuildBoxError
 
 class Paths:
 
@@ -34,7 +34,7 @@ class Paths:
     def homedir():
         home = UserInfo.homedir()
         if not home:
-            raise BBoxError("unable to determine user home directory.")
+            raise BuildBoxError("unable to determine user home directory.")
         return home
     #end function
 
@@ -42,7 +42,7 @@ class Paths:
     def cache_dir():
         cache_dir = UserInfo.cache_dir()
         if not cache_dir:
-            raise BBoxError("unable to determine cache directory.")
+            raise BuildBoxError("unable to determine cache directory.")
         return cache_dir
     #end function
 
