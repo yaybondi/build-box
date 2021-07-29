@@ -81,13 +81,14 @@ def configure_logging():
     handler.setFormatter(fmt)
     LOGGER.addHandler(handler)
     LOGGER.setLevel(logging.INFO)
+    return fmt
 #end function
 
 if __name__ == "__main__":
     os.environ["BUILD_BOX_WRAPPER_A883DAFC"] = "1"
 
     try:
-        configure_logging()
+        log_formatter = configure_logging()
 
         if len(sys.argv) < 2:
             print_usage()
@@ -107,6 +108,9 @@ if __name__ == "__main__":
                     "failed to exec build-box-do: {}".format(str(e))
                 )
         elif command in ["create", "list", "delete"]:
+            log_formatter.set_app_name(
+                "build-box {}".format(command)
+            )
             BuildBoxCLI().execute_command(*sys.argv[1:])
         elif command in ["--help", "-h"]:
             print_usage()

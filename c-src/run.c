@@ -91,11 +91,8 @@ int bbox_run_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                 bbox_config_disable_file_updates(conf);
                 break;
             case '?':
-                bbox_perror("run", "unknown option '%s'.\n", argv[optind-1]);
-                return -2;
             case ':':
-                bbox_perror("run", "option '%s' needs an argument.\n",
-                        argv[optind-1]);
+                bbox_run_usage();
                 return -2;
             default:
                 /* impossible, ignore */

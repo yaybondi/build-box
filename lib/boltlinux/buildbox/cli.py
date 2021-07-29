@@ -89,8 +89,8 @@ class BuildBoxCLI:
 
         try:
             opts, args = getopt.getopt(
-                args, "hr:a:t:", ["release=", "arch=", "targets=", "force",
-                    "repo-base=", "no-verify"]
+                args, "hr:a:t:", ["arch=", "force", "help", "no-verify",
+                    "release=", "repo-base=", "targets="]
             )
         except getopt.GetoptError:
             usage()
@@ -167,7 +167,7 @@ class BuildBoxCLI:
 
         try:
             opts, args = getopt.getopt(
-                args, "ht:", ["targets="]
+                args, "ht:", ["help", "targets="]
             )
         except getopt.GetoptError:
             usage()
@@ -215,7 +215,7 @@ class BuildBoxCLI:
 
         try:
             opts, args = getopt.getopt(
-                args, "ht:", ["targets="]
+                args, "ht:", ["help", "targets="]
             )
         except getopt.GetoptError:
             usage()

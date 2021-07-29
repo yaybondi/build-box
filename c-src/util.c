@@ -271,8 +271,19 @@ void bbox_perror(const char *lead, const char *format, ...)
 {
     va_list ap;
     va_start(ap, format);
-    fprintf(stderr, "build-box-do %s: ", lead);
+
+    char *bold = "\033[1m";
+    char *red  = "\033[31m";
+    char *rst  = "\033[0m";
+
+    if(isatty(STDOUT_FILENO)) {
+        fprintf(stderr, "%sbuild-box %s%s: %s%serror%s: ",
+            bold, lead, rst, bold, red, rst);
+    } else {
+        fprintf(stderr, "build-box-do %s: error: ", lead);
+    }
     vfprintf(stderr, format, ap);
+
     va_end(ap);
 }
 
