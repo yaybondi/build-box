@@ -173,15 +173,16 @@ class BuildBoxTarget:
         sysroot.terminate_processes()
         sysroot.umount_all()
 
-        homedir = Paths.homedir()
-
-        for subdir in ["dev", "proc", "sys", homedir.lstrip(os.sep)]:
+        for subdir in ["dev", "proc", "sys"]:
             full_path = os.path.join(target_dir, subdir)
+
             if os.path.exists(full_path) and os.listdir(full_path):
                 raise BuildBoxError(
                     "the '{}' subdirectory is not empty, aborting."
                     .format(subdir)
                 )
+            #end if
+        #end for
 
         with open("/proc/mounts", "r", encoding="utf-8") as f:
             buf = f.read()
