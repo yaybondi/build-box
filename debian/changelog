@@ -1,3 +1,14 @@
+build-box-utils (0.10.0-1bolt1) unstable; urgency=medium
+
+  * Don't require target home directory to be empty when deleting
+  * Check for target existence before doing stuff in C code
+  * Align how Python and C part report errors
+  * Align build-box-do help text style with Python part
+  * setup.py: take python module version from debian/changelog
+  * Reuse distro-tools image generator code for bootstrapping buildbox targets
+
+ -- Tobias Koch <tobias.koch@gmail.com>  Fri, 30 Jul 2021 00:47:26 +0300
+
 build-box-utils (0.9.5-1bolt1) unstable; urgency=medium
 
   * Depend on new distro-tools packages
