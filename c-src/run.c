@@ -27,6 +27,7 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <string.h>
 #include <errno.h>
 #include "bbox-do.h"
@@ -107,7 +108,8 @@ int bbox_run(int argc, char * const argv[])
 {
     char *buf = NULL;
     size_t buf_len = 0;
-    int non_optind;
+
+    int rval = BBOX_ERR_INVOCATION;
 
     bbox_conf_t *conf = bbox_config_new();
     if(!conf) {
@@ -115,39 +117,40 @@ int bbox_run(int argc, char * const argv[])
         return BBOX_ERR_RUNTIME;
     }
 
-    const char *home_dir = bbox_config_get_home_dir(conf);
+    int non_optind;
 
     if((non_optind = bbox_run_getopt(conf, argc, argv)) < 0) {
-        bbox_config_free(conf);
-
-        if(non_optind < -1) {
-            return BBOX_ERR_INVOCATION;
-        } else {
-            /* user asked for --help */
-            return 0;
-        }
+        /* user asked for --help */
+        if(non_optind == -1)
+            rval = 0;
+        goto cleanup_and_exit;
     }
 
     if(non_optind >= argc) {
         bbox_perror("run", "no target specified.\n");
-        bbox_config_free(conf);
-        return BBOX_ERR_INVOCATION;
+        goto cleanup_and_exit;
     }
 
     char *target = argv[non_optind++];
-    bbox_path_join(&buf, bbox_config_get_target_dir(conf), target, &buf_len);
+
+    bbox_path_join(
+        &buf, bbox_config_get_target_dir(conf), target, &buf_len
+    );
+
+    struct stat st;
+
+    if(lstat(buf, &st) == -1) {
+        bbox_perror("login", "target '%s' not found.\n", target);
+        goto cleanup_and_exit;
+    }
+
+    rval = BBOX_ERR_RUNTIME;
 
     /*
-     * Please have a look at the comments in mount.c to assess the safety of
-     * this block.
+     * Mount special directories and home if configured (default).
      */
-    if(bbox_config_get_mount_any(conf)) {
-        if(bbox_mount_any(conf, buf) == -1) {
-            free(buf);
-            bbox_config_free(conf);
-            return BBOX_ERR_RUNTIME;
-        }
-    }
+    if(bbox_mount_any(conf, buf) == -1)
+        goto cleanup_and_exit;
 
     /*
      * We're not worried about this block, because we're currently running with
@@ -162,14 +165,14 @@ int bbox_run(int argc, char * const argv[])
      * execute what's left on the command line.
      */
     bbox_sanitize_environment();
-    int rval = bbox_runas_user_chrooted(buf, home_dir,
-            argc-non_optind, &argv[non_optind]);
+
+    if(bbox_runas_user_chrooted(buf, bbox_config_get_home_dir(conf),
+            argc-non_optind, &argv[non_optind]) == 0)
+        rval = 0;
+
+cleanup_and_exit:
 
     bbox_config_free(conf);
     free(buf);
-
-    if(rval == -1)
-        return BBOX_ERR_RUNTIME;
-    else
-        return rval;
+    return rval;
 }

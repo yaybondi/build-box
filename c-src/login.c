@@ -112,7 +112,8 @@ int bbox_login(int argc, char * const argv[])
 {
     char *buf = NULL;
     size_t buf_len = 0;
-    int non_optind;
+
+    int rval = BBOX_ERR_INVOCATION;
 
     bbox_conf_t *conf = bbox_config_new();
     if(!conf) {
@@ -120,15 +121,13 @@ int bbox_login(int argc, char * const argv[])
         return BBOX_ERR_RUNTIME;
     }
 
-    if((non_optind = bbox_login_getopt(conf, argc, argv)) < 0) {
-        bbox_config_free(conf);
+    int non_optind;
 
-        if(non_optind < -1) {
-            return BBOX_ERR_INVOCATION;
-        } else {
-            /* user asked for --help */
-            return 0;
-        }
+    if((non_optind = bbox_login_getopt(conf, argc, argv)) < 0) {
+        /* user asked for --help */
+        if(non_optind == -1)
+            rval = 0;
+        goto cleanup_and_exit;
     }
 
     /*
@@ -137,23 +136,29 @@ int bbox_login(int argc, char * const argv[])
      */
     if(non_optind >= argc) {
         bbox_perror("login", "no target specified.\n");
-        bbox_config_free(conf);
-        return BBOX_ERR_INVOCATION;
+        goto cleanup_and_exit;
     }
 
     char *target = argv[non_optind];
-    bbox_path_join(&buf, bbox_config_get_target_dir(conf), target, &buf_len);
+
+    bbox_path_join(
+        &buf, bbox_config_get_target_dir(conf), target, &buf_len
+    );
+
+    struct stat st;
+
+    if(lstat(buf, &st) == -1) {
+        bbox_perror("login", "target '%s' not found.\n", target);
+        goto cleanup_and_exit;
+    }
+
+    rval = BBOX_ERR_RUNTIME;
 
     /*
      * Mount special directories and home if configured (default).
      */
-    if(bbox_config_get_mount_any(conf)) {
-        if(bbox_mount_any(conf, buf) == -1) {
-            free(buf);
-            bbox_config_free(conf);
-            return BBOX_ERR_RUNTIME;
-        }
-    }
+    if(bbox_mount_any(conf, buf) == -1)
+        goto cleanup_and_exit;
 
     /*
      * Copy passwd, group and hosts information from the host to the target.
@@ -167,13 +172,14 @@ int bbox_login(int argc, char * const argv[])
      * change into the home directory.
      */
     bbox_sanitize_environment();
-    int rval = bbox_login_sh_chrooted(buf, bbox_config_get_home_dir(conf));
 
-    bbox_config_free(conf);
+    /* If this succeeds, it doesn't return. */
+    if(bbox_login_sh_chrooted(buf, bbox_config_get_home_dir(conf)) == 0)
+        rval = 0;
+
+cleanup_and_exit:
+
     free(buf);
-
-    if(rval == -1)
-        return BBOX_ERR_RUNTIME;
-    else
-        return rval;
+    bbox_config_free(conf);
+    return rval;
 }

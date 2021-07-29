@@ -270,8 +270,8 @@ int bbox_umount(int argc, char * const argv[])
 {
     char *buf = NULL;
     size_t buf_len = 0;
-    int non_optind;
-    int rval = 0;
+
+    int rval = BBOX_ERR_INVOCATION;
 
     bbox_conf_t *conf = bbox_config_new();
     if(!conf) {
@@ -279,28 +279,39 @@ int bbox_umount(int argc, char * const argv[])
         return BBOX_ERR_RUNTIME;
     }
 
-    if((non_optind = bbox_umount_getopt(conf, argc, argv)) < 0) {
-        bbox_config_free(conf);
+    int non_optind;
 
-        if(non_optind < -1) {
-            return BBOX_ERR_INVOCATION;
-        } else {
-            /* user asked for --help */
-            return 0;
-        }
+    if((non_optind = bbox_umount_getopt(conf, argc, argv)) < 0) {
+        /* user asked for --help */
+        if(non_optind == -1)
+            rval = 0;
+        goto cleanup_and_exit;
     }
 
     if(non_optind >= argc) {
         bbox_perror("umount", "no target specified.\n");
-        bbox_config_free(conf);
-        return BBOX_ERR_INVOCATION;
+        goto cleanup_and_exit;
     }
 
     char *target = argv[non_optind];
-    bbox_path_join(&buf, bbox_config_get_target_dir(conf), target, &buf_len);
 
-    if(bbox_umount_any(conf, buf) < 0)
-        rval = BBOX_ERR_RUNTIME;
+    bbox_path_join(
+        &buf, bbox_config_get_target_dir(conf), target, &buf_len
+    );
+
+    struct stat st;
+
+    if(lstat(buf, &st) == -1) {
+        bbox_perror("login", "target '%s' not found.\n", target);
+        goto cleanup_and_exit;
+    }
+
+    rval = BBOX_ERR_RUNTIME;
+
+    if(bbox_umount_any(conf, buf) == 0)
+        rval = 0;
+
+cleanup_and_exit:
 
     bbox_config_free(conf);
     free(buf);
