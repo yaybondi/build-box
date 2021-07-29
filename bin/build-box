@@ -89,6 +89,8 @@ if __name__ == "__main__":
 
     try:
         log_formatter = configure_logging()
+        if os.getuid() == 0:
+            raise BuildBoxError("build-box must not be used by root")
 
         if len(sys.argv) < 2:
             print_usage()
