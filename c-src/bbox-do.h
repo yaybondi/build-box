@@ -85,6 +85,7 @@ int bbox_is_subdir_of(const char *path, const char *subdir);
 int bbox_try_fix_pkg_cache_symlink(char *module);
 
 char *bbox_get_user_dir(uid_t uid, size_t *n_ptr);
+int validate_target_name(const char *module, const char *target_name);
 
 /* Mounting */
 

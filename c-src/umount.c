@@ -115,6 +115,11 @@ int bbox_umount_getopt(bbox_conf_t *conf, int argc, char * const argv[])
     if(do_umount_all)
         bbox_config_clear_mount(conf);
 
+    if(argc - 1 > optind) {
+        bbox_umount_usage();
+        return -1;
+    }
+
     return optind;
 }
 
@@ -295,6 +300,9 @@ int bbox_umount(int argc, char * const argv[])
 
     char *target = argv[non_optind];
 
+    if(validate_target_name("umount", target) == -1)
+        goto cleanup_and_exit;
+
     bbox_path_join(
         &buf, bbox_config_get_target_dir(conf), target, &buf_len
     );
@@ -302,7 +310,7 @@ int bbox_umount(int argc, char * const argv[])
     struct stat st;
 
     if(lstat(buf, &st) == -1) {
-        bbox_perror("login", "target '%s' not found.\n", target);
+        bbox_perror("umount", "target '%s' not found.\n", target);
         goto cleanup_and_exit;
     }
 

@@ -105,6 +105,11 @@ int bbox_login_getopt(bbox_conf_t *conf, int argc, char * const argv[])
         }
     }
 
+    if(argc - 1 > optind) {
+        bbox_login_usage();
+        return -1;
+    }
+
     return optind;
 }
 
@@ -130,16 +135,15 @@ int bbox_login(int argc, char * const argv[])
         goto cleanup_and_exit;
     }
 
-    /*
-     * TODO: we're currently ignoring extra arguments on the command line. This
-     *       should probably be an error instead.
-     */
     if(non_optind >= argc) {
         bbox_perror("login", "no target specified.\n");
         goto cleanup_and_exit;
     }
 
     char *target = argv[non_optind];
+
+    if(validate_target_name("login", target) == -1)
+        goto cleanup_and_exit;
 
     bbox_path_join(
         &buf, bbox_config_get_target_dir(conf), target, &buf_len

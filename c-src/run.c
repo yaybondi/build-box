@@ -133,6 +133,9 @@ int bbox_run(int argc, char * const argv[])
 
     char *target = argv[non_optind++];
 
+    if(validate_target_name("run", target) == -1)
+        goto cleanup_and_exit;
+
     bbox_path_join(
         &buf, bbox_config_get_target_dir(conf), target, &buf_len
     );

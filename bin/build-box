@@ -95,7 +95,6 @@ if __name__ == "__main__":
         if len(sys.argv) < 2:
             print_usage()
             sys.exit(BUILD_BOX_ERR_INVOCATION)
-        #end if
 
         command = sys.argv[1]
 

@@ -54,13 +54,9 @@ class BuildBoxTarget:
 
     @classmethod
     def create(cls, target_name, *specs, **kwargs):
-        cls.init()
+        cls._target_name_valid_or_raise(target_name)
 
-        if not re.match(r"^[-_a-zA-Z0-9.]+$", target_name):
-            raise BuildBoxError(
-                "the target name must consist only of characters "
-                "matching [-_a-zA-Z0-9.]"
-            )
+        cls.init()
 
         target_prefix = kwargs.get("target_prefix", Paths.target_prefix())
 
@@ -159,6 +155,8 @@ class BuildBoxTarget:
     @classmethod
     def delete(cls, targets: list, **kwargs):
         for target_name in set(targets):
+            cls._target_name_valid_or_raise(target_name)
+        for target_name in set(targets):
             cls._delete(target_name, **kwargs)
 
     @classmethod
@@ -202,6 +200,15 @@ class BuildBoxTarget:
         old_sig_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
         shutil.rmtree(target_dir)
         signal.signal(signal.SIGINT, old_sig_handler)
+    #end function
+
+    @classmethod
+    def _target_name_valid_or_raise(cls, target_name):
+        if not re.match(r"^[-_a-zA-Z0-9.]+$", target_name):
+            raise BuildBoxError(
+                "a target name must consist of characters "
+                "matching [-_a-zA-Z0-9.]."
+            )
     #end function
 
 #end class

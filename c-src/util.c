@@ -1045,3 +1045,41 @@ failure:
     free(user_dir);
     return NULL;
 }
+
+int validate_target_name(const char *module, const char *target_name)
+{
+    size_t len = strlen(target_name);
+
+    if(len == 0)
+        return -1;
+
+    for(int i = 0; i < len; i++) {
+        int ch = target_name[i];
+
+        switch(ch) {
+            case '-':
+            case '_':
+            case '.':
+                continue;
+            default:
+                break;
+        }
+
+        if(ch >= 'a' && ch <= 'z')
+            continue;
+        if(ch >= 'A' && ch <= 'Z')
+            continue;
+        if(ch >= '0' && ch <= '9')
+            continue;
+
+        bbox_perror(
+            module,
+            "a target name must consist of characters matching "
+            "[-_a-zA-Z0-9.].\n"
+        );
+
+        return -1;
+    }
+
+    return 0;
+}
