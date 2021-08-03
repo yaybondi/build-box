@@ -1,11 +1,17 @@
-build-box-utils (0.10.1-1bolt1) unstable; urgency=medium
+build-box-utils (0.10.2-1) unstable; urgency=medium
+
+  * Require distro-tools modules >= 1.4.2
+
+ -- Tobias Koch <tobias.koch@gmail.com>  Tue, 03 Aug 2021 23:13:58 +0300
+
+build-box-utils (0.10.1-1) unstable; urgency=medium
 
   * Validate target names in all subcommands.
   * Python wrapper also checks that user is not root.
 
  -- Tobias Koch <tobias.koch@gmail.com>  Fri, 30 Jul 2021 20:09:43 +0300
 
-build-box-utils (0.10.0-1bolt1) unstable; urgency=medium
+build-box-utils (0.10.0-1) unstable; urgency=medium
 
   * Don't require target home directory to be empty when deleting
   * Check for target existence before doing stuff in C code
@@ -16,33 +22,33 @@ build-box-utils (0.10.0-1bolt1) unstable; urgency=medium
 
  -- Tobias Koch <tobias.koch@gmail.com>  Fri, 30 Jul 2021 00:47:26 +0300
 
-build-box-utils (0.9.5-1bolt1) unstable; urgency=medium
+build-box-utils (0.9.5-1) unstable; urgency=medium
 
   * Depend on new distro-tools packages
   * Copy appropriate QEMU static binary into target
 
  -- Tobias Koch <tobias.koch@gmail.com>  Tue, 02 Feb 2021 22:36:13 +0300
 
-build-box-utils (0.9.4.2-1bolt1) unstable; urgency=medium
+build-box-utils (0.9.4.2-1) unstable; urgency=medium
 
   * Cosmetics: change an error message.
 
  -- Tobias Koch <tobias.koch@gmail.com>  Sat, 16 Jan 2021 20:26:36 +0300
 
-build-box-utils (0.9.4-1bolt1.1) unstable; urgency=medium
+build-box-utils (0.9.4-1.1) unstable; urgency=medium
 
   * Cleanups and refactoring.
 
  -- Tobias Koch <tobias.koch@gmail.com>  Sat, 16 Jan 2021 20:16:31 +0300
 
-build-box-utils (0.9.3-1bolt1) unstable; urgency=medium
+build-box-utils (0.9.3-1) unstable; urgency=medium
 
   * Pick up tools packages from tools/<host_arch>
   * build-box-do: all usage refers to 'build-box' command
 
  -- Tobias Koch <tobias.koch@gmail.com>  Sat, 02 Jan 2021 17:34:43 +0300
 
-build-box-utils (0.9.2-1bolt1) unstable; urgency=medium
+build-box-utils (0.9.2-1) unstable; urgency=medium
 
   * Install bash-completion.sh as bash_completion.d/build-box
   * Keep targets below /var/lib/build-box/users
@@ -54,14 +60,14 @@ build-box-utils (0.9.2-1bolt1) unstable; urgency=medium
 
  -- Tobias Koch <tobias.koch@gmail.com>  Sat, 19 Dec 2020 23:54:53 +0300
 
-build-box-utils (0.9.1-1bolt1) unstable; urgency=medium
+build-box-utils (0.9.1-1) unstable; urgency=medium
 
   * Add dependency on bolt-repo-keys.
   * Fix bash completions were not installed correctly.
 
  -- Tobias Koch <tobias.koch@gmail.com>  Sun, 25 Oct 2020 11:21:21 +0300
 
-build-box-utils (0.9.0-1bolt1) unstable; urgency=medium
+build-box-utils (0.9.0-1) unstable; urgency=medium
 
   * Initial release.
 
