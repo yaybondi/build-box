@@ -15,10 +15,10 @@ Depends: ${python3:Depends}, ${shlibs:Depends}, ${misc:Depends},
  bolt-repo-keys,
  mount,
  opkg,
- python3-bolt-misc,
- python3-bolt-distro-info,
- python3-bolt-image-gen,
- qemu-user-static-bolt,
+ python3-bolt-misc (>= 1.4.2),
+ python3-bolt-distro-info (>= 1.4.2),
+ python3-bolt-image-gen (>= 1.4.2),
+ qemu-user-static-bolt (>= 1:5.2.0),
  usign
 Description: management utility for Bolt Linux build chroots
  BuildBox manages Bolt Linux build chroots. It bootstraps chroots from packages
