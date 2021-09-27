@@ -83,7 +83,7 @@ class BuildBoxCLI:
                 False,
             "repo_base":
                 "http://archive.boltlinux.org/dists",
-            "do_verify":
+            "verify":
                 True
         }
 
@@ -120,7 +120,7 @@ class BuildBoxCLI:
                     kwargs["repo_base"] = v.strip()
                     break
                 if case("--no-verify"):
-                    kwargs["do_verify"] = False
+                    kwargs["verify"] = False
                     break
             #end for
         #end for
