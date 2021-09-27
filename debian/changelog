@@ -1,3 +1,10 @@
+build-box-utils (0.10.3-1) unstable; urgency=medium
+
+  * Bump debhelper compat level to 10
+  * build-box "run" execs instead of forking and waiting
+
+ -- Tobias Koch <tobias.koch@gmail.com>  Mon, 27 Sep 2021 21:28:51 +0300
+
 build-box-utils (0.10.2-1) unstable; urgency=medium
 
   * Require distro-tools modules >= 1.4.2
