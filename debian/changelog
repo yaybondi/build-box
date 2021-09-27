@@ -1,3 +1,9 @@
+build-box-utils (0.10.4-1) unstable; urgency=medium
+
+  * Fix --no-verify parameter not working
+
+ -- Tobias Koch <tobias.koch@gmail.com>  Mon, 27 Sep 2021 22:17:43 +0300
+
 build-box-utils (0.10.3-1) unstable; urgency=medium
 
   * Bump debhelper compat level to 10
