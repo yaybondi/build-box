@@ -351,8 +351,8 @@ int bbox_login_sh_chrooted(char *sys_root, char *home_dir)
 
     execlp(sh, "sh", "-l", (char*) NULL);
 
-    bbox_perror("bbox_login_sh_chrooted",
-            "failed to invoke shell: %s.\n", strerror(errno));
+    bbox_perror("bbox_login_sh_chrooted", "failed to invoke shell: %s.\n",
+            strerror(errno));
     return -1;
 }
 
@@ -375,97 +375,78 @@ int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
         return -1;
     }
 
-    if((pid = fork()) == -1) {
+    /* change into system folder. */
+    if(chdir(sys_root) == -1) {
         bbox_perror("bbox_runas_user_chrooted",
-                "failed to start subprocess: %s.\n",
-                strerror(errno));
-        return -1;
-    }
-
-    /* this is the child exec'ing the new process. */
-    if(pid == 0) {
-
-        /* change into system folder. */
-        if(chdir(sys_root) == -1) {
-            bbox_perror("bbox_runas_user_chrooted",
-                    "could not chdir to '%s': %s.\n",
-                    sys_root, strerror(errno));
-            _exit(BBOX_ERR_RUNTIME);
-        }
-
-        /* do a few sanity checks before chrooting. */
-        if(lstat(".", &st) == -1) {
-            bbox_perror("bbox_runas_user_chrooted", "failed to stat '%s': %s.\n",
-                    sys_root, strerror(errno));
-            _exit(BBOX_ERR_RUNTIME);
-        }
-        if(st.st_uid != uid) {
-            bbox_perror("bbox_runas_user_chrooted",
-                    "chroot is not owned by user.\n");
-            _exit(BBOX_ERR_RUNTIME);
-        }
-
-        if(bbox_raise_privileges() == -1)
-            return -1;
-
-        /* now do actual chroot call. */
-        if(chroot(".") == -1) {
-            bbox_perror("bbox_runas_user_chrooted",
-                    "chroot to system root failed: %s.\n",
-                    strerror(errno));
-            _exit(BBOX_ERR_RUNTIME);
-        }
-
-        if(bbox_drop_privileges() == -1)
-            _exit(BBOX_ERR_RUNTIME);
-
-        /* Do this while we're at the fs root. */
-        bbox_try_fix_pkg_cache_symlink("");
-
-        /* this is non-critical. */
-        if(home_dir)
-            if(chdir(home_dir));
-
-        /* search for a shell. */
-        for(int i = 0; (sh = shells[i]) != NULL; i++) {
-            if(lstat(sh, &st) == 0)
-                break;
-            else
-                sh = NULL;
-        }
-
-        if(!sh) {
-            bbox_perror("bbox_runas_user_chrooted", "could not find a shell.\n");
-            return -1;
-        }
-
-        /* prepare the command line. */
-        if(argc > 1) {
-            for(int i = 0; i < argc; i++) {
-                if(i > 0)
-                    bbox_sep_join(&buf, buf, " ", argv[i], &buf_len);
-                else
-                    bbox_sep_join(&buf, "", "", argv[i], &buf_len);
-            }
-        } else {
-            buf = argv[0];
-        }
-
-        char *command[6] = {"sh", "-l", "-c", "--", buf, NULL};
-        execvp(sh, command);
-
-        /* if we make it here exec failed. */
+                "could not chdir to '%s': %s.\n",
+                sys_root, strerror(errno));
         _exit(BBOX_ERR_RUNTIME);
     }
 
-    if(waitpid(pid, &child_status, 0) == -1) {
-        bbox_perror("bbox_runas_chrooted",
-                "unable to retrieve child exit status: %s.\n",
+    /* do a few sanity checks before chrooting. */
+    if(lstat(".", &st) == -1) {
+        bbox_perror("bbox_runas_user_chrooted", "failed to stat '%s': %s.\n",
+                sys_root, strerror(errno));
+        _exit(BBOX_ERR_RUNTIME);
+    }
+    if(st.st_uid != uid) {
+        bbox_perror("bbox_runas_user_chrooted",
+                "chroot is not owned by user.\n");
+        _exit(BBOX_ERR_RUNTIME);
+    }
+
+    if(bbox_raise_privileges() == -1)
+        return -1;
+
+    /* now do actual chroot call. */
+    if(chroot(".") == -1) {
+        bbox_perror("bbox_runas_user_chrooted",
+                "chroot to system root failed: %s.\n",
                 strerror(errno));
+        _exit(BBOX_ERR_RUNTIME);
+    }
+
+    if(bbox_drop_privileges() == -1)
+        _exit(BBOX_ERR_RUNTIME);
+
+    /* Do this while we're at the fs root. */
+    bbox_try_fix_pkg_cache_symlink("");
+
+    /* this is non-critical. */
+    if(home_dir)
+        if(chdir(home_dir));
+
+    /* search for a shell. */
+    for(int i = 0; (sh = shells[i]) != NULL; i++) {
+        if(lstat(sh, &st) == 0)
+            break;
+        else
+            sh = NULL;
+    }
+
+    if(!sh) {
+        bbox_perror("bbox_runas_user_chrooted", "could not find a shell.\n");
         return -1;
     }
 
-    return WEXITSTATUS(child_status);
+    /* prepare the command line. */
+    if(argc > 1) {
+        for(int i = 0; i < argc; i++) {
+            if(i > 0)
+                bbox_sep_join(&buf, buf, " ", argv[i], &buf_len);
+            else
+                bbox_sep_join(&buf, "", "", argv[i], &buf_len);
+        }
+    } else {
+        buf = argv[0];
+    }
+
+    char *command[6] = {"sh", "-l", "-c", "--", buf, NULL};
+    execvp(sh, command);
+
+    bbox_perror("bbox_runas_user_chrooted", "failed to invoke shell: %s.\n",
+            strerror(errno));
+    return -1;
 }
 
 int bbox_run_command_capture(uid_t uid, const char *cmd, char * const argv[],

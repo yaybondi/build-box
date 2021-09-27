@@ -169,9 +169,8 @@ int bbox_run(int argc, char * const argv[])
      */
     bbox_sanitize_environment();
 
-    if(bbox_runas_user_chrooted(buf, bbox_config_get_home_dir(conf),
-            argc-non_optind, &argv[non_optind]) == 0)
-        rval = 0;
+    rval = bbox_runas_user_chrooted(buf, bbox_config_get_home_dir(conf),
+            argc-non_optind, &argv[non_optind]);
 
 cleanup_and_exit:
 
