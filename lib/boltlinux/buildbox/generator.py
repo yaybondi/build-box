@@ -36,7 +36,8 @@ class BuildBoxGenerator(ImageGenerator):
         """\
         src/gz main {repo_base}/{release}/core/{arch}/{libc}/main
         src/gz tools {repo_base}/{release}/core/{arch}/{libc}/tools/{host_arch}
-        """
+        src/gz cross-tools {repo_base}/{release}/core/{arch}/{libc}/tools/{host_arch}
+        """  # noqa
     )
 
     OPKG_ARCH_TEMPLATE = textwrap.dedent(
