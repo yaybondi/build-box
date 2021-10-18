@@ -73,7 +73,7 @@ class BuildBoxGenerator(ImageGenerator):
             f.write("option cache_dir /.pkg-cache\n")
 
         package_cache = os.path.join(
-            Paths.cache_dir(), "bolt", "dists", self._release, self._arch,
+            Paths.cache_dir(), "bolt", "pkg-cache", self._release, self._arch,
                 self._libc
         )
 

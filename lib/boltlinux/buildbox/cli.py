@@ -69,8 +69,6 @@ class BuildBoxCLI:
         #end inline function
 
         kwargs = {
-            "cache_dir":
-                Paths.cache_dir(),
             "release":
                 Distribution.latest_release(),
             "libc":
