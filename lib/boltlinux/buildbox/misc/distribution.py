@@ -46,6 +46,16 @@ class Distribution:
     #end function
 
     @staticmethod
+    def valid_libc(release, libc):
+        try:
+            info = DistroInfo().find(release=release)
+        except DistroInfoError as e:
+            raise BuildBoxError(str(e))
+
+        return info.get("supported-architectures", {}).get(libc) is not None
+    #end function
+
+    @staticmethod
     def valid_arch(release, arch, libc="musl"):
         try:
             info = DistroInfo().find(release=release)

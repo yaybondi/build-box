@@ -58,6 +58,7 @@ class BuildBoxCLI:
                                          (defaults to latest).
                   -a, --arch <arch>      The architecture to bootstrap
                                          (defaults to host arch).
+                  -l, --libc <libc>      The C runtime to use ("musl" or "glibc").
 
                   --repo-base <url>      Repository base URL up to and including the
                                          "dists" folder.
@@ -87,8 +88,16 @@ class BuildBoxCLI:
 
         try:
             opts, args = getopt.getopt(
-                args, "hr:a:t:", ["arch=", "force", "help", "no-verify",
-                    "release=", "repo-base=", "targets="]
+                args, "hr:a:c:t:", [
+                    "arch=",
+                    "force",
+                    "help",
+                    "libc=",
+                    "no-verify",
+                    "release=",
+                    "repo-base=",
+                    "targets="
+                ]
             )
         except getopt.GetoptError:
             usage()
@@ -105,6 +114,9 @@ class BuildBoxCLI:
                     break
                 if case("-a", "--arch"):
                     kwargs["arch"] = v.strip().replace("-", "_")
+                    break
+                if case("-l", "--libc"):
+                    kwargs["libc"] = v.strip()
                     break
                 if case("-t", "--targets"):
                     kwargs["target_prefix"] = os.path.normpath(
@@ -129,6 +141,12 @@ class BuildBoxCLI:
             raise BuildBoxError(
                 'release "{}" not found, run `bolt-distro-info refresh -r`.'
                 .format(release)
+            )
+
+        if not Distribution.valid_libc(release, libc):
+            raise BuildBoxError(
+                'release "{}" does not support C runtime library "{}".'
+                .format(release, libc)
             )
 
         if not Distribution.valid_arch(release, arch, libc=libc):
