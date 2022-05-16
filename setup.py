@@ -23,7 +23,7 @@ setup(
     ],
     package_dir={'': 'lib'},
     data_files=[
-        ('/usr/bin', ['bin/build-box', 'bin/build-box-do']),
+        ('/usr/bin', ['bin/build-box']),
     ],
     platforms=['Linux'],
 
