@@ -1,3 +1,12 @@
+build-box-utils (0.11.0-1) unstable; urgency=medium
+
+  * Collect (and verify) specfiles before doing anything else
+  * tox.ini: add passenv=PYTHONPATH
+  * Install build-box-do via debian/rules instead of setup.py
+  * Allow choosing between musl and glibc
+
+ -- Tobias Koch <tobias.koch@gmail.com>  Mon, 16 May 2022 12:09:13 +0300
+
 build-box-utils (0.10.7-1) unstable; urgency=medium
 
   * Change package cache location
