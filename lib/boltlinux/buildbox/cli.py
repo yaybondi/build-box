@@ -33,6 +33,7 @@ from boltlinux.buildbox.misc.paths import Paths
 from boltlinux.buildbox.target import BuildBoxTarget
 from boltlinux.buildbox.error import BuildBoxError
 from boltlinux.miscellaneous.switch import switch
+from boltlinux.osimage.util import ImageGeneratorUtils
 
 EXIT_OK = 0
 EXIT_ERROR = 1
@@ -88,7 +89,7 @@ class BuildBoxCLI:
 
         try:
             opts, args = getopt.getopt(
-                args, "hr:a:c:t:", [
+                args, "a:c:hl:r:t:", [
                     "arch=",
                     "force",
                     "help",
@@ -159,7 +160,16 @@ class BuildBoxCLI:
             usage()
             sys.exit(EXIT_ERROR)
 
-        BuildBoxTarget.create(args[0], *args[1:], **kwargs)
+        # We collect specfiles here so that we can error out early if there is
+        # a problem with one of them.
+        try:
+            specs = ImageGeneratorUtils.collect_specfiles(
+                release, libc, arch, *args[1:]
+            )
+        except ImageGeneratorUtils.Error as e:
+            raise BuildBoxError(str(e))
+
+        BuildBoxTarget.create(args[0], *specs, **kwargs)
     #end function
 
     def list(self, *args):

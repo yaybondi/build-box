@@ -96,7 +96,8 @@ class BuildBoxTarget:
             image_gen.prepare(target_dir, target_name)
 
             with Sysroot(target_dir):
-                image_gen.bootstrap(target_dir, specs, **kwargs)
+                for specfile in specs:
+                    image_gen.customize(target_dir, specfile)
         except (KeyboardInterrupt, Exception):
             old_sig_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
 

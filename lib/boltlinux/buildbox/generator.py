@@ -85,29 +85,4 @@ class BuildBoxGenerator(ImageGenerator):
             os.symlink(package_cache, package_cache_symlink)
     #end function
 
-    def bootstrap(self, sysroot, specs, **kwargs):
-        specfile_list = []
-
-        for specfile in specs:
-            if os.path.isfile(specfile):
-                specfile_list.append(specfile)
-            else:
-                internal_specs = ImageGeneratorUtils.find_internal_specs(
-                    specfile, self._release, self._libc, self._arch
-                )
-                if not internal_specs:
-                    raise ImageGenerator.Error(
-                        'no specfile and no internal spec by name "{}" found.'
-                        .format(specfile)
-                    )
-                #end if
-
-                specfile_list.extend(internal_specs)
-            #end if
-        #end for
-
-        for specfile in specfile_list:
-            self.customize(sysroot, specfile)
-    #end function
-
 #end class
