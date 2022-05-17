@@ -1,3 +1,9 @@
+build-box-utils (0.11.1-1) unstable; urgency=medium
+
+  * generator: don't assume libc is musl
+
+ -- Tobias Koch <tobias.koch@gmail.com>  Wed, 18 May 2022 00:30:59 +0300
+
 build-box-utils (0.11.0-1) unstable; urgency=medium
 
   * Collect (and verify) specfiles before doing anything else
