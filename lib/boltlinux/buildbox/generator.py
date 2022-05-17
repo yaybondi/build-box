@@ -53,7 +53,7 @@ class BuildBoxGenerator(ImageGenerator):
         TARGET_ID={target_id}
         TARGET_MACHINE={machine}
         TARGET_TYPE={target_type}
-        TOOLS_TYPE={host_arch}-tools-linux-musl
+        TOOLS_TYPE={tools_type}
         """
     )
 
