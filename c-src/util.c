@@ -49,7 +49,7 @@ void bbox_sanitize_environment()
 {
     char *start, *end, *name;
 
-    for(int i = 0; (start = environ[i]) != NULL; i++)
+    for(size_t i = 0; (start = environ[i]) != NULL; i++)
     {
         if(!strncmp(start, "BOLT_", 5))
             continue;
@@ -336,7 +336,7 @@ int bbox_login_sh_chrooted(char *sys_root, char *home_dir)
         if(chdir(home_dir) == -1);
 
     /* search for a shell. */
-    for(int i = 0; (sh = shells[i]) != NULL; i++) {
+    for(size_t i = 0; (sh = shells[i]) != NULL; i++) {
         if(lstat(sh, &st) == 0)
             break;
         else
@@ -417,7 +417,7 @@ int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
         if(chdir(home_dir));
 
     /* search for a shell. */
-    for(int i = 0; (sh = shells[i]) != NULL; i++) {
+    for(size_t i = 0; (sh = shells[i]) != NULL; i++) {
         if(lstat(sh, &st) == 0)
             break;
         else
@@ -431,7 +431,7 @@ int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
 
     /* prepare the command line. */
     if(argc > 1) {
-        for(int i = 0; i < argc; i++) {
+        for(size_t i = 0; i < argc; i++) {
             if(i > 0)
                 bbox_sep_join(&buf, buf, " ", argv[i], &buf_len);
             else
@@ -646,7 +646,7 @@ void bbox_update_chroot_dynamic_config(const char *sys_root)
             (long) grp->gr_gid
         );
 
-        for(int i = 0; grp->gr_mem[i] != NULL; i++) {
+        for(size_t i = 0; grp->gr_mem[i] != NULL; i++) {
             if(grp->gr_mem[i+1] != NULL) {
                 dprintf(out_fd, "%s,", grp->gr_mem[i]);
             } else {
@@ -669,7 +669,7 @@ void bbox_update_chroot_dynamic_config(const char *sys_root)
         NULL
     };
 
-    for(int i = 0; file_list[i] != NULL; i++) {
+    for(size_t i = 0; file_list[i] != NULL; i++) {
         char *file = file_list[i];
 
         if(lstat(file, &st) == -1)
@@ -802,7 +802,7 @@ int bbox_check_user_in_group_build_box()
     }
 
     /* Now, finally (!), check if group is in group list. Phew... */
-    for(int i = 0; i < ngroups; i++) {
+    for(size_t i = 0; i < ngroups; i++) {
         if(gid == groups[i]) {
             rval = 0;
             break;
@@ -1034,7 +1034,7 @@ int validate_target_name(const char *module, const char *target_name)
     if(len == 0)
         return -1;
 
-    for(int i = 0; i < len; i++) {
+    for(size_t i = 0; i < len; i++) {
         int ch = target_name[i];
 
         switch(ch) {

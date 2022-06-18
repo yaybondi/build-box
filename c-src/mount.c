@@ -194,11 +194,83 @@ cleanup_and_exit:
     return rval;
 }
 
+int bbox_mount_special(const char *sys_root, const char *filesystemtype)
+{
+    char *mount_point = NULL;
+    char *target = NULL;
+    size_t buf_len = 0;
+
+    int is_mounted = 0;
+
+    if(!strcmp(filesystemtype, "proc")) {
+        mount_point = "proc";
+    } else if (!strcmp(filesystemtype, "sysfs")) {
+        mount_point = "sys";
+    } else {
+        bbox_perror("mount", "unsupported special filesystem: %s\n",
+            filesystemtype);
+        return -1;
+    }
+
+    bbox_path_join(&target, sys_root, mount_point, &buf_len);
+
+    if((is_mounted = bbox_mount_is_mounted(target)) == -1) {
+        free(target);
+        return -1;
+    }
+
+    if(is_mounted) {
+        free(target);
+        return 0;
+    }
+
+    /*
+     * Require that the normalized mountpoint is a directory owned by the user
+     * who invoked `build-box` to mitigate the risk of misuse.
+     */
+    if(bbox_isdir_and_owned_by("mount", target, getuid()) == -1) {
+        free(target);
+        return -1;
+    }
+
+    /*
+     * We need to be running mount as root, so we briefly raise privileges to
+     * drop them again immediately after.
+     */
+    if(bbox_raise_privileges() == -1) {
+        free(target);
+        return -1;
+    }
+
+    int rval = 0;
+
+    if(mount(NULL, target, filesystemtype, 0, NULL) != 0)
+    {
+        bbox_perror("mount", "failed to mount %s on %s: %s.\n",
+                filesystemtype, target, strerror(errno));
+        rval = -1;
+    }
+    else if(mount(NULL, target, NULL, MS_PRIVATE, NULL) != 0)
+    {
+        bbox_perror("mount", "failed to make mountpoint %s private: %s.\n",
+                target, strerror(errno));
+        /* Continue anyway. */
+    }
+
+    /*
+     * We're done with mounting, lower privileges right away.
+     */
+    if(bbox_lower_privileges() == -1)
+        rval = -1;
+
+    free(target);
+    return rval;
+}
+
 int bbox_mount_bind(const char *sys_root, const char *source, int recursive)
 {
     char *target = NULL;
     size_t buf_len = 0;
-    struct stat st;
     int is_mounted = 0;
 
     bbox_path_join(&target, sys_root, source, &buf_len);
@@ -222,8 +294,6 @@ int bbox_mount_bind(const char *sys_root, const char *source, int recursive)
         return -1;
     }
 
-    int rval = 0;
-
     /*
      * We need to be running mount as root, so we briefly raise privileges to
      * drop them again immediately after.
@@ -232,6 +302,8 @@ int bbox_mount_bind(const char *sys_root, const char *source, int recursive)
         free(target);
         return -1;
     }
+
+    int rval = 0;
 
     unsigned long mountflags = MS_BIND | (recursive ? MS_REC : 0);
 
@@ -273,12 +345,12 @@ int bbox_mount_any(const bbox_conf_t *conf, const char *sys_root)
     }
 
     if(bbox_config_get_mount_proc(conf)) {
-        if(bbox_mount_bind(sys_root, "/proc", 0) < 0)
+        if(bbox_mount_special(sys_root, "proc") < 0)
             return -1;
     }
 
     if(bbox_config_get_mount_sys(conf)) {
-        if(bbox_mount_bind(sys_root, "/sys", 0) < 0)
+        if(bbox_mount_special(sys_root, "sysfs") < 0)
             return -1;
     }
 
