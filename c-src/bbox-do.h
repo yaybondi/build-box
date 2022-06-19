@@ -12,6 +12,8 @@
 #define BBOX_DO_MOUNT_HOME 0x8
 #define BBOX_DO_MOUNT_ALL  0xF
 
+#define BBOX_HAVE_PID_NS   0x1
+
 #define BBOX_GROUP_NAME "build-box"
 #define BBOX_VAR_LIB "/var/lib/build-box"
 #define BBOX_USER_DIR_TEMPLATE BBOX_VAR_LIB"/users/%lu"
@@ -23,6 +25,7 @@ typedef struct {
     char *home_dir;
     unsigned int do_mount;
     unsigned int do_file_updates;
+    unsigned int have_ns;
 } bbox_conf_t;
 
 bbox_conf_t *bbox_config_new();
@@ -33,28 +36,33 @@ char *bbox_config_get_target_dir(const bbox_conf_t *conf);
 int bbox_config_set_home_dir(bbox_conf_t *conf, const char *path);
 char *bbox_config_get_home_dir(const bbox_conf_t *conf);
 
-void bbox_config_clear_mount(bbox_conf_t *c);
+void bbox_config_clear_mount(bbox_conf_t *conf);
 
-void bbox_config_set_mount_all(bbox_conf_t *c);
-void bbox_config_set_mount_dev(bbox_conf_t *c);
-void bbox_config_set_mount_proc(bbox_conf_t *c);
-void bbox_config_set_mount_sys(bbox_conf_t *c);
-void bbox_config_set_mount_home(bbox_conf_t *c);
+void bbox_config_set_mount_all(bbox_conf_t *conf);
+void bbox_config_set_mount_dev(bbox_conf_t *conf);
+void bbox_config_set_mount_proc(bbox_conf_t *conf);
+void bbox_config_set_mount_sys(bbox_conf_t *conf);
+void bbox_config_set_mount_home(bbox_conf_t *conf);
 
-void bbox_config_unset_mount_dev(bbox_conf_t *c);
-void bbox_config_unset_mount_proc(bbox_conf_t *c);
-void bbox_config_unset_mount_sys(bbox_conf_t *c);
-void bbox_config_unset_mount_home(bbox_conf_t *c);
+void bbox_config_unset_mount_dev(bbox_conf_t *conf);
+void bbox_config_unset_mount_proc(bbox_conf_t *conf);
+void bbox_config_unset_mount_sys(bbox_conf_t *conf);
+void bbox_config_unset_mount_home(bbox_conf_t *conf);
 
-unsigned int bbox_config_get_mount_any(const bbox_conf_t *c);
-unsigned int bbox_config_get_mount_dev(const bbox_conf_t *c);
-unsigned int bbox_config_get_mount_proc(const bbox_conf_t *c);
-unsigned int bbox_config_get_mount_sys(const bbox_conf_t *c);
-unsigned int bbox_config_get_mount_home(const bbox_conf_t *c);
+unsigned int bbox_config_get_mount_any(const bbox_conf_t *conf);
+unsigned int bbox_config_get_mount_dev(const bbox_conf_t *conf);
+unsigned int bbox_config_get_mount_proc(const bbox_conf_t *conf);
+unsigned int bbox_config_get_mount_sys(const bbox_conf_t *conf);
+unsigned int bbox_config_get_mount_home(const bbox_conf_t *conf);
 
-void bbox_config_disable_file_updates(bbox_conf_t *c);
-void bbox_config_enable_file_updates(bbox_conf_t *c);
-unsigned int bbox_config_do_file_updates(const bbox_conf_t *c);
+void bbox_config_disable_file_updates(bbox_conf_t *conf);
+void bbox_config_enable_file_updates(bbox_conf_t *conf);
+
+void bbox_config_set_have_pid_ns(bbox_conf_t *conf);
+void bbox_config_unset_have_pid_ns(bbox_conf_t *conf);
+unsigned int bbox_config_get_have_pid_ns(const bbox_conf_t *conf);
+
+unsigned int bbox_config_do_file_updates(const bbox_conf_t *conf);
 void bbox_config_free(bbox_conf_t *conf);
 
 /* Utilities */

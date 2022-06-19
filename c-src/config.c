@@ -91,6 +91,7 @@ bbox_conf_t *bbox_config_new()
      */
     conf->do_mount = 0;
     conf->do_file_updates = 0;
+    conf->have_ns = 0;
 
 success:
     return conf;
@@ -226,6 +227,21 @@ void bbox_config_enable_file_updates(bbox_conf_t *c)
 unsigned int bbox_config_do_file_updates(const bbox_conf_t *c)
 {
     return (c->do_file_updates);
+}
+
+void bbox_config_set_have_pid_ns(bbox_conf_t *c)
+{
+    c->have_ns |= BBOX_HAVE_PID_NS;
+}
+
+void bbox_config_unset_have_pid_ns(bbox_conf_t *c)
+{
+    c->have_ns &= ~BBOX_HAVE_PID_NS;
+}
+
+unsigned int bbox_config_get_have_pid_ns(const bbox_conf_t *c)
+{
+    return (c->have_ns & BBOX_HAVE_PID_NS);
 }
 
 void bbox_config_free(bbox_conf_t *conf)
