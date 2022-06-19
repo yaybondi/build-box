@@ -361,13 +361,12 @@ int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
 {
     static char *shells[] = {"/tools/bin/sh", "/usr/bin/sh", NULL};
 
-    int pid;
-    int child_status;
+    uid_t uid = getuid();
+
     char *sh = NULL;
     char *buf = NULL;
     size_t buf_len = 0;
     struct stat st;
-    uid_t uid = getuid();
 
     if(argc == 0) {
         bbox_perror("bbox_runas_user_chrooted",
