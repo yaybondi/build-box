@@ -18,6 +18,9 @@ __pycache__
 /debian/build-box-ng.substvars
 /debian/build-box-ng/
 /debian/files
+/debian/autoreconf.after
+/debian/autoreconf.before
+/debian/debhelper-build-stamp
 /depcomp
 /install-sh
 /lib/build_box_utils.egg-info/
