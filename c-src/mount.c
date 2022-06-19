@@ -47,9 +47,9 @@ void bbox_mount_usage()
         "                                                                         \n"
         "  -h, --help            Print this help message and exit immediately.    \n"
         "                                                                         \n"
-        "  -m, --mount <fstype>  Mount 'dev', 'proc', 'sys' or 'home'. For the    \n"
-        "                        'mount' command, if this option is not specified,\n"
-        "                        then the default is to mount all of them.        \n"
+        "  -m, --mount <fstype>  Mount 'dev', 'proc', 'sys' or 'home'. If this    \n"
+        "                        option is not specified then the default is to   \n"
+        "                        mount all of them.                               \n"
         "                                                                         \n"
     );
 }
@@ -81,7 +81,7 @@ int bbox_mount_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                 bbox_mount_usage();
                 return -1;
             case 't':
-                if(bbox_config_set_target_dir(conf, optarg) < 0)
+                if(bbox_config_set_target_dir(conf, optarg) == -1)
                     return -2;
                 break;
             case 'm':

@@ -35,22 +35,22 @@
 void bbox_run_usage()
 {
     printf(
-        "                                                                        \n"
-        "USAGE:                                                                  \n"
-        "                                                                        \n"
-        "  build-box run [OPTIONS] <target-name> -- <command>                    \n"
-        "                                                                        \n"
-        "OPTIONS:                                                                \n"
-        "                                                                        \n"
-        "  -h, --help           Print this help message and exit immediately.    \n"
-        "                                                                        \n"
-        "  -n, --no-mount       Don't bind mount homedir and special filesystems.\n"
-        "                       This does *not* unmount previously mounted       \n"
-        "                       file systems. Use 'bbox-do umount' for that.     \n"
-        "                                                                        \n"
-        "  --no-file-copy       Don't copy /etc/passwd, group and resolv.conf    \n"
-        "                       from host.                                       \n"
-        "                                                                        \n"
+        "                                                                         \n"
+        "USAGE:                                                                   \n"
+        "                                                                         \n"
+        "  build-box run [OPTIONS] <target-name> -- <command>                     \n"
+        "                                                                         \n"
+        "OPTIONS:                                                                 \n"
+        "                                                                         \n"
+        "  -h, --help            Print this help message and exit immediately.    \n"
+        "                                                                         \n"
+        "  -m, --mount <fstype>  Mount 'dev', 'proc', 'sys' or 'home'. If this    \n"
+        "                        option is not specified then the default is to   \n"
+        "                        mount all of them.                               \n"
+        "                                                                         \n"
+        "  --no-file-copy        Don't copy passwd database, group database and   \n"
+        "                        resolv.conf from host.                           \n"
+        "                                                                         \n"
     );
 }
 
@@ -58,21 +58,22 @@ int bbox_run_getopt(bbox_conf_t *conf, int argc, char * const argv[])
 {
     int c;
     int option_index = 0;
+    int do_mount_all = 1;
 
     static struct option long_options[] = {
         {"help",         no_argument,       0, 'h'},
         {"targets",      required_argument, 0, 't'},
-        {"no-mount",     no_argument,       0, 'n'},
+        {"mount",        required_argument, 0, 'm'},
         {"no-file-copy", no_argument,       0, '1'},
         { 0,             0,                 0,  0 }
     };
 
-    bbox_config_set_mount_all(conf);
+    bbox_config_clear_mount(conf);
     bbox_config_enable_file_updates(conf);
     optind = 1;
 
     while(1) {
-        c = getopt_long(argc, argv, ":ht:n", long_options, &option_index);
+        c = getopt_long(argc, argv, ":ht:m:", long_options, &option_index);
 
         if(c == -1)
             break;
@@ -85,8 +86,23 @@ int bbox_run_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                 if(bbox_config_set_target_dir(conf, optarg) == -1)
                     return -2;
                 break;
-            case 'n':
-                bbox_config_clear_mount(conf);
+            case 'm':
+                do_mount_all = 0;
+
+                if(!strcmp(optarg, "dev")) {
+                    bbox_config_set_mount_dev(conf);
+                } else if(!strcmp(optarg, "proc")) {
+                    bbox_config_set_mount_proc(conf);
+                } else if(!strcmp(optarg, "sys")) {
+                    bbox_config_set_mount_sys(conf);
+                } else if(!strcmp(optarg, "home")) {
+                    bbox_config_set_mount_home(conf);
+                } else {
+                    bbox_perror("mount", "unknown file system specifier "
+                            "'%s'.\n", optarg);
+                    return -2;
+                }
+
                 break;
             case '1':
                 bbox_config_disable_file_updates(conf);
@@ -100,6 +116,9 @@ int bbox_run_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                 break;
         }
     }
+
+    if(do_mount_all)
+        bbox_config_set_mount_all(conf);
 
     return optind;
 }

@@ -47,9 +47,9 @@ void bbox_umount_usage()
         "                                                                          \n"
         "  -h, --help             Print this help message and exit immediately.    \n"
         "                                                                          \n"
-        "  -u, --umount <fstype>  Mount 'dev', 'proc', 'sys' or 'home'. For the    \n"
-        "                         'mount' command, if this option is not specified,\n"
-        "                         then the default is to umount all of them.       \n"
+        "  -m, --umount <fstype>  Unmount 'dev', 'proc', 'sys' or 'home'. If this  \n"
+        "                         option is not specified, then the default is to  \n"
+        "                         unmount all of them.                             \n"
         "                                                                          \n"
     );
 }
@@ -63,7 +63,7 @@ int bbox_umount_getopt(bbox_conf_t *conf, int argc, char * const argv[])
     static struct option long_options[] = {
         {"help",     no_argument,       0, 'h'},
         {"targets",  required_argument, 0, 't'},
-        {"umount",   required_argument, 0, 'u'},
+        {"umount",   required_argument, 0, 'm'},
         { 0,         0,                 0,  0 }
     };
 
@@ -71,7 +71,7 @@ int bbox_umount_getopt(bbox_conf_t *conf, int argc, char * const argv[])
     optind = 1;
 
     while(1) {
-        c = getopt_long(argc, argv, ":ht:u:", long_options, &option_index);
+        c = getopt_long(argc, argv, ":ht:m:", long_options, &option_index);
 
         if(c == -1)
             break;
@@ -84,7 +84,7 @@ int bbox_umount_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                 if(bbox_config_set_target_dir(conf, optarg) < 0)
                     return -2;
                 break;
-            case 'u':
+            case 'm':
                 do_umount_all = 0;
 
                 if(!strcmp(optarg, "dev")) {
