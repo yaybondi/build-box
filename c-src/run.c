@@ -51,6 +51,8 @@ void bbox_run_usage()
         "  --no-file-copy        Don't copy passwd database, group database and   \n"
         "                        resolv.conf from host.                           \n"
         "                                                                         \n"
+        "  --isolate             Run in a separate PID and mount namespace.       \n"
+        "                                                                         \n"
     );
 }
 
@@ -65,6 +67,7 @@ int bbox_run_getopt(bbox_conf_t *conf, int argc, char * const argv[])
         {"targets",      required_argument, 0, 't'},
         {"mount",        required_argument, 0, 'm'},
         {"no-file-copy", no_argument,       0, '1'},
+        {"isolate",      no_argument,       0, '2'},
         { 0,             0,                 0,  0 }
     };
 
@@ -106,6 +109,9 @@ int bbox_run_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                 break;
             case '1':
                 bbox_config_disable_file_updates(conf);
+                break;
+            case '2':
+                bbox_config_set_isolation(conf);
                 break;
             case '?':
             case ':':
@@ -188,8 +194,8 @@ int bbox_run(int argc, char * const argv[])
      */
     bbox_sanitize_environment();
 
-    rval = bbox_runas_user_chrooted(buf, bbox_config_get_home_dir(conf),
-            argc-non_optind, &argv[non_optind]);
+    rval = bbox_runas_user_chrooted(buf, argc-non_optind, &argv[non_optind],
+            conf);
 
 cleanup_and_exit:
 

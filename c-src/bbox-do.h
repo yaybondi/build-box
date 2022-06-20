@@ -1,18 +1,19 @@
 #ifndef BBOX_H_INCLUDED
 #define BBOX_H_INCLUDED
 
-#define BBOX_ERR_INVOCATION 1
-#define BBOX_ERR_RUNTIME    2
+#define BBOX_ERR_INVOCATION 254
+#define BBOX_ERR_RUNTIME    255
 
 /* Config */
 
-#define BBOX_DO_MOUNT_DEV  0x1
-#define BBOX_DO_MOUNT_PROC 0x2
-#define BBOX_DO_MOUNT_SYS  0x4
-#define BBOX_DO_MOUNT_HOME 0x8
-#define BBOX_DO_MOUNT_ALL  0xF
+#define BBOX_DO_MOUNT_DEV  0x01
+#define BBOX_DO_MOUNT_PROC 0x02
+#define BBOX_DO_MOUNT_SYS  0x04
+#define BBOX_DO_MOUNT_HOME 0x08
+#define BBOX_DO_MOUNT_ALL  0x0F
 
-#define BBOX_HAVE_PID_NS   0x1
+#define BBOX_DO_COPY_FILES 0x10
+#define BBOX_DO_ISOLATE    0x20
 
 #define BBOX_GROUP_NAME "build-box"
 #define BBOX_VAR_LIB "/var/lib/build-box"
@@ -23,9 +24,7 @@
 typedef struct {
     char *target_dir;
     char *home_dir;
-    unsigned int do_mount;
-    unsigned int do_file_updates;
-    unsigned int have_ns;
+    unsigned int config_bits;
 } bbox_conf_t;
 
 bbox_conf_t *bbox_config_new();
@@ -58,9 +57,9 @@ unsigned int bbox_config_get_mount_home(const bbox_conf_t *conf);
 void bbox_config_disable_file_updates(bbox_conf_t *conf);
 void bbox_config_enable_file_updates(bbox_conf_t *conf);
 
-void bbox_config_set_have_pid_ns(bbox_conf_t *conf);
-void bbox_config_unset_have_pid_ns(bbox_conf_t *conf);
-unsigned int bbox_config_get_have_pid_ns(const bbox_conf_t *conf);
+void bbox_config_set_isolation(bbox_conf_t *conf);
+void bbox_config_unset_isolation(bbox_conf_t *conf);
+unsigned int bbox_config_get_isolation(const bbox_conf_t *conf);
 
 unsigned int bbox_config_do_file_updates(const bbox_conf_t *conf);
 void bbox_config_free(bbox_conf_t *conf);
@@ -73,8 +72,8 @@ void bbox_path_join(char **buf_ptr, const char *base, const char *sub,
         size_t *n_ptr);
 void bbox_perror(const char *lead, const char *msg, ...);
 int bbox_login_sh_chrooted(char *sys_root, char *home_dir);
-int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
-        int argc, char * const argv[]);
+int bbox_runas_user_chrooted(const char *sys_root, int argc,
+        char * const argv[], const bbox_conf_t *conf);
 int bbox_run_command_capture(uid_t uid, const char *cmd, char * const argv[],
         char **out_buf, size_t *out_buf_size);
 void bbox_update_chroot_dynamic_config(const char *sys_root);

@@ -22,12 +22,16 @@
  * THE SOFTWARE.
  */
 
+#define _GNU_SOURCE
+#include <sched.h>
+
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/mount.h>
 #include <pwd.h>
 #include <grp.h>
 #include <fcntl.h>
@@ -356,12 +360,10 @@ int bbox_login_sh_chrooted(char *sys_root, char *home_dir)
     return -1;
 }
 
-int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
-        int argc, char * const argv[])
+int bbox_runas_user_chrooted(const char *sys_root, int argc,
+        char * const argv[], const bbox_conf_t *conf)
 {
     static char *shells[] = {"/tools/bin/sh", "/usr/bin/sh", NULL};
-
-    uid_t uid = getuid();
 
     char *sh = NULL;
     char *buf = NULL;
@@ -371,7 +373,7 @@ int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
     if(argc == 0) {
         bbox_perror("bbox_runas_user_chrooted",
                 "missing arguments, nothing to run.\n");
-        return -1;
+        return BBOX_ERR_INVOCATION;
     }
 
     /* change into system folder. */
@@ -379,39 +381,40 @@ int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
         bbox_perror("bbox_runas_user_chrooted",
                 "could not chdir to '%s': %s.\n",
                 sys_root, strerror(errno));
-        _exit(BBOX_ERR_RUNTIME);
+        return BBOX_ERR_RUNTIME;
     }
 
     /* do a few sanity checks before chrooting. */
     if(lstat(".", &st) == -1) {
         bbox_perror("bbox_runas_user_chrooted", "failed to stat '%s': %s.\n",
                 sys_root, strerror(errno));
-        _exit(BBOX_ERR_RUNTIME);
+        return BBOX_ERR_RUNTIME;
     }
-    if(st.st_uid != uid) {
+    if(st.st_uid != getuid()) {
         bbox_perror("bbox_runas_user_chrooted",
                 "chroot is not owned by user.\n");
-        _exit(BBOX_ERR_RUNTIME);
+        return BBOX_ERR_RUNTIME;
     }
 
     if(bbox_raise_privileges() == -1)
-        return -1;
+        return BBOX_ERR_RUNTIME;
 
     /* now do actual chroot call. */
     if(chroot(".") == -1) {
         bbox_perror("bbox_runas_user_chrooted",
                 "chroot to system root failed: %s.\n",
                 strerror(errno));
-        _exit(BBOX_ERR_RUNTIME);
+        return BBOX_ERR_RUNTIME;
     }
 
-    if(bbox_drop_privileges() == -1)
-        _exit(BBOX_ERR_RUNTIME);
+    if(bbox_lower_privileges() == -1)
+        return BBOX_ERR_RUNTIME;
 
     /* Do this while we're at the fs root. */
     bbox_try_fix_pkg_cache_symlink("");
 
     /* this is non-critical. */
+    char *home_dir = bbox_config_get_home_dir(conf);
     if(home_dir)
         if(chdir(home_dir));
 
@@ -425,7 +428,7 @@ int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
 
     if(!sh) {
         bbox_perror("bbox_runas_user_chrooted", "could not find a shell.\n");
-        return -1;
+        return BBOX_ERR_RUNTIME;
     }
 
     /* prepare the command line. */
@@ -440,12 +443,58 @@ int bbox_runas_user_chrooted(const char *sys_root, const char *home_dir,
         buf = argv[0];
     }
 
-    char *command[6] = {"sh", "-l", "-c", "--", buf, NULL};
-    execvp(sh, command);
+    pid_t pid = 0;
 
-    bbox_perror("bbox_runas_user_chrooted", "failed to invoke shell: %s.\n",
-            strerror(errno));
-    return -1;
+    if(bbox_config_get_isolation(conf)) {
+        if(bbox_raise_privileges() == -1)
+            return BBOX_ERR_RUNTIME;
+
+        if(unshare(CLONE_NEWPID | CLONE_NEWNS) == -1) {
+            bbox_perror("bbox_runas_user_chrooted",
+                    "failed to isolate process: %s\n", strerror(errno));
+            return BBOX_ERR_RUNTIME;
+        }
+
+        if((pid = fork()) == -1) {
+            bbox_perror("bbox_runas_user_chrooted", "fork failed: %s\n",
+                    strerror(errno));
+            return BBOX_ERR_RUNTIME;
+        }
+
+        if(pid == 0 && bbox_config_get_mount_proc(conf)) {
+            if(mount(NULL, "/proc", "proc", 0, NULL) != 0) {
+                bbox_perror("bbox_runas_user_chrooted",
+                        "failed to mount /proc inside namespace: %s\n",
+                        strerror(errno));
+                _exit(BBOX_ERR_RUNTIME);
+            }
+        }
+    }
+
+    int drop_priv_result = bbox_drop_privileges();
+
+    if(pid == 0) {
+        if(drop_priv_result == -1) {
+            bbox_perror("bbox_runas_user_chrooted",
+                    "failed to drop privileges in confined child: %s\n",
+                    strerror(errno));
+            _exit(BBOX_ERR_RUNTIME);
+        }
+
+        char *command[6] = {"sh", "-l", "-c", "--", buf, NULL};
+        execvp(sh, command);
+        bbox_perror("bbox_runas_user_chrooted", "failed to invoke shell: %s\n",
+                strerror(errno));
+    }
+
+    int wstatus;
+
+    /* Pass through the exit status, if that is possible. */
+    waitpid(pid, &wstatus, 0);
+    if(WIFEXITED(wstatus))
+        return WEXITSTATUS(wstatus);
+
+    return BBOX_ERR_RUNTIME;
 }
 
 int bbox_run_command_capture(uid_t uid, const char *cmd, char * const argv[],
