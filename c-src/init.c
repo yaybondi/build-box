@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Tobias Koch <tobias.koch@gmail.com>
+ * Copyright (c) 2020-2022 Tobias Koch <tobias.koch@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,14 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+
+#include <errno.h>
 #include <getopt.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <string.h>
-#include <errno.h>
+
 #include "bbox-do.h"
 
 void bbox_init_usage()

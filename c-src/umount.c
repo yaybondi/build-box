@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Tobias Koch <tobias.koch@gmail.com>
+ * Copyright (c) 2017-2022 Tobias Koch <tobias.koch@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,16 +23,19 @@
  */
 
 #include <stdlib.h>
-#include <limits.h>
 #include <stdio.h>
-#include <mntent.h>
+
+#include <errno.h>
 #include <getopt.h>
-#include <unistd.h>
-#include <sys/types.h>
+#include <limits.h>
+#include <mntent.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
-#include <string.h>
-#include <errno.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
 #include "bbox-do.h"
 
 void bbox_umount_usage()
