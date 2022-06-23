@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include <sched.h>
+#include <signal.h>
 #include <string.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
@@ -38,6 +39,15 @@
 #include <unistd.h>
 
 #include "bbox-do.h"
+
+static pid_t pid_one = 0;
+
+void signal_handler(int sig)
+{
+    if(!pid_one)
+        return;
+    kill(pid_one, SIGKILL);
+}
 
 void bbox_run_usage()
 {
@@ -259,14 +269,39 @@ int bbox_runas_user_chrooted(const char *sys_root, int argc,
 
         char *command[6] = {"sh", "-l", "-c", "--", buf, NULL};
         execvp(sh, command);
+
         bbox_perror("bbox_runas_user_chrooted", "failed to invoke shell: %s\n",
                 strerror(errno));
+        _exit(BBOX_ERR_RUNTIME);
     }
 
-    int wstatus;
+    /*
+     * We only get here if --isolate was set and we forked above. Otherwise,
+     * the execvp above will already have replaced the process.
+     */
+
+    pid_one = pid;
+
+    int signals_to_handle[] = {SIGTERM, SIGINT, SIGHUP, 0};
+
+    for(int i = 0; signals_to_handle[i] != 0; i++) {
+        signal(signals_to_handle[i], signal_handler);
+    }
+
+    int wstatus = 0;
+
+    /* If we were interrupted, we try again. */
+    while(waitpid(pid, &wstatus, 0) == -1) {
+        /*
+         * This is really the only error that can occur. ECHILD cannot, because
+         * we forked the child ourselves. And EINVAL because we don't pass any
+         * flags to waitpid.
+         */
+        if(errno != EINTR)
+            break;
+    }
 
     /* Pass through the exit status, if that is possible. */
-    waitpid(pid, &wstatus, 0);
     if(WIFEXITED(wstatus))
         return WEXITSTATUS(wstatus);
 
