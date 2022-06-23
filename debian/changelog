@@ -1,3 +1,13 @@
+build-box-utils (0.12.0-1) unstable; urgency=medium
+
+  * Mount proc, sysfs directly, not as bind mount
+  * Replace --no-mount option with selective --mount option
+  * build-box "run" optionally puts called program into a separate PID and
+    mount namespace.
+  * build-box "run" kills namespace when it is gracefully terminated
+
+ -- Tobias Koch <tobias.koch@gmail.com>  Fri, 24 Jun 2022 00:23:21 +0300
+
 build-box-utils (0.11.1-1) unstable; urgency=medium
 
   * generator: don't assume libc is musl
