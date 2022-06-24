@@ -235,12 +235,21 @@ int bbox_runas_user_chrooted(const char *sys_root, int argc,
         if(bbox_raise_privileges() == -1)
             return BBOX_ERR_RUNTIME;
 
+        /*
+         * Moving the process into its own PID namespace means, that this
+         * process group cannot interfere with other processes running under
+         * the same account.
+         *
+         * Putting it into its own mount namespace so that it gets a limited
+         * view of the proc filesystem (mounted below).
+         */
         if(unshare(CLONE_NEWPID | CLONE_NEWNS) == -1) {
             bbox_perror("bbox_runas_user_chrooted",
                     "failed to isolate process: %s\n", strerror(errno));
             return BBOX_ERR_RUNTIME;
         }
 
+        /* Note that we only fork and wait when isolation is requested. */
         if((pid = fork()) == -1) {
             bbox_perror("bbox_runas_user_chrooted", "fork failed: %s\n",
                     strerror(errno));
@@ -257,8 +266,10 @@ int bbox_runas_user_chrooted(const char *sys_root, int argc,
         }
     }
 
+    /* Drop privileges in both parent and child (if there is a child). */
     int drop_priv_result = bbox_drop_privileges();
 
+    /* Here pid is 0 if we didn't fork or if we forked and are the parent. */
     if(pid == 0) {
         if(drop_priv_result == -1) {
             bbox_perror("bbox_runas_user_chrooted",
