@@ -50,6 +50,8 @@ void bbox_login_usage()
         "                        option is not specified then the default is to  \n"
         "                        mount all of them.                              \n"
         "                                                                        \n"
+        "  --no-mount            Don't mount any filesystems per default.        \n"
+        "                                                                        \n"
         "  --no-file-copy        Don't copy passwd database, group database and  \n"
         "                        resolv.conf from host.                          \n"
         "                                                                        \n"
@@ -67,6 +69,7 @@ int bbox_login_getopt(bbox_conf_t *conf, int argc, char * const argv[])
         {"targets",      required_argument, 0, 't'},
         {"mount",        required_argument, 0, 'm'},
         {"no-file-copy", no_argument,       0, '1'},
+        {"no-mount",     no_argument,       0, '2'},
         { 0,             0,                 0,  0 }
     };
 
@@ -112,6 +115,9 @@ int bbox_login_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                 break;
             case '1':
                 bbox_config_disable_file_updates(conf);
+                break;
+            case '2':
+                do_mount_all = 0;
                 break;
             case '?':
             case ':':

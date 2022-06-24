@@ -68,6 +68,8 @@ void bbox_run_usage()
         "  --no-file-copy        Don't copy passwd database, group database and   \n"
         "                        resolv.conf from host.                           \n"
         "                                                                         \n"
+        "  --no-mount            Don't mount any filesystems per default.         \n"
+        "                                                                         \n"
         "  --isolate             Run in a separate PID and mount namespace.       \n"
         "                                                                         \n"
     );
@@ -84,7 +86,8 @@ int bbox_run_getopt(bbox_conf_t *conf, int argc, char * const argv[])
         {"targets",      required_argument, 0, 't'},
         {"mount",        required_argument, 0, 'm'},
         {"no-file-copy", no_argument,       0, '1'},
-        {"isolate",      no_argument,       0, '2'},
+        {"no-mount",     no_argument,       0, '2'},
+        {"isolate",      no_argument,       0, '3'},
         { 0,             0,                 0,  0 }
     };
 
@@ -128,6 +131,9 @@ int bbox_run_getopt(bbox_conf_t *conf, int argc, char * const argv[])
                 bbox_config_disable_file_updates(conf);
                 break;
             case '2':
+                do_mount_all = 0;
+                break;
+            case '3':
                 bbox_config_set_isolation(conf);
                 break;
             case '?':
