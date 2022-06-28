@@ -44,7 +44,7 @@ _build_box_arg_complete() {
         '<arch>')
             COMPREPLY=(
                 $(
-                    compgen -W "aarch64 armv6 armv7a mips64el powerpc64le riscv64 s390x x86_64" \
+                    compgen -W "aarch64 armv7a mips64el powerpc64le riscv64 s390x x86_64" \
                         -- ${COMP_WORDS[COMP_CWORD]}
                 )
             )
@@ -153,19 +153,25 @@ _build_box_opt_complete() {
 
     case "${COMP_WORDS[1]}" in
         create)
-            _opts="$_opts -r --release -a --arch --force --repo-base --no-verify"
+            _opts="$_opts -r --release -a --arch -l --libc --force --repo-base --no-verify"
             ;;
         delete|list)
             _opts="$_opts"
             ;;
-        login|run)
-            _opts="$_opts -n --no-mount --no-file-copy"
+        info)
+            _opts="$_opts --json -k --key"
+            ;;
+        login)
+            _opts="$_opts -m --mount --no-mount --no-file-copy"
+            ;;
+        run)
+            _opts="$_opts --isolate -m --mount --no-mount --no-file-copy"
             ;;
         mount)
             _opts="$_opts -m --mount"
             ;;
         umount)
-            _opts="$_opts -u --umount"
+            _opts="$_opts -m --umount"
             ;;
     esac
 
@@ -173,7 +179,7 @@ _build_box_opt_complete() {
 }
 
 _build_box_complete() {
-    local _valid_commands="create delete list login mount umount run"
+    local _valid_commands="create delete info list login mount run umount"
 
     case "$COMP_CWORD" in
         1)
