@@ -220,6 +220,68 @@ class BuildBoxCLI:
         BuildBoxTarget.list(**kwargs)
     #end function
 
+    def info(self, *args):
+        def usage():
+            print(textwrap.dedent(
+                """
+                USAGE:
+
+                  build-box info [OPTIONS] <target-name>
+
+                OPTIONS:
+
+                  -h, --help        Print this help message and exit immediately.
+
+                  --json            Output result as JSON object.
+
+                  -k, --key <key>   Print value for given key only.
+                """  # noqa
+            ))
+
+        kwargs = {
+            "format":
+                "text",
+            "key":
+                None,
+            "target_prefix":
+                Paths.target_prefix(),
+        }
+
+        try:
+            opts, args = getopt.getopt(
+                args, "hk:t:", ["help", "json", "key=", "targets="]
+            )
+        except getopt.GetoptError:
+            usage()
+            sys.exit(EXIT_ERROR)
+
+        for o, v in opts:
+            for case in switch(o):
+                if case("-h", "--help"):
+                    usage()
+                    sys.exit(EXIT_OK)
+                    break
+                if case("--json"):
+                    kwargs["format"] = "json"
+                    break
+                if case("-k", "--key"):
+                    kwargs["key"] = v.strip()
+                    break
+                if case("-t", "--targets"):
+                    kwargs["target_prefix"] = os.path.normpath(
+                        os.path.realpath(v.strip())
+                    )
+                    break
+            #end for
+        #end for
+
+        if len(args) != 1:
+            usage()
+            sys.exit(EXIT_ERROR)
+
+        BuildBoxTarget.info(args[0], **kwargs)
+    #end function
+
     def delete(self, *args):
         def usage():
             print(textwrap.dedent(

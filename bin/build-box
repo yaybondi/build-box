@@ -59,6 +59,7 @@ def print_usage():
 
           create        Create new target.
           delete        Remove a target.
+          info          Print information about a target.
           list          List all existing targets.
           login         Chroot into a target.
           mount         Mount homedir and special file systems (dev, proc, sys).
@@ -108,7 +109,7 @@ if __name__ == "__main__":
                 raise BuildBoxError(
                     "failed to exec build-box-do: {}".format(str(e))
                 )
-        elif command in ["create", "list", "delete"]:
+        elif command in ["create", "info", "list", "delete"]:
             log_formatter.set_app_name(
                 "build-box {}".format(command)
             )

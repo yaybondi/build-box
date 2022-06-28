@@ -23,6 +23,7 @@
 # THE SOFTWARE.
 #
 
+import json
 import os
 import re
 import subprocess
@@ -120,6 +121,7 @@ class BuildBoxTarget:
 
         for entry in sorted(os.listdir(target_prefix)):
             machine = "defunct"
+            libc    = "unknown"
 
             if not os.path.isdir(os.path.join(target_prefix, entry)):
                 continue
@@ -133,24 +135,78 @@ class BuildBoxTarget:
                     break
             #end for
 
-            etc_target = os.path.join(target_prefix, entry, "etc", "target")
-
-            if shell_found and os.path.exists(etc_target):
-                with open(etc_target, "r", encoding="utf-8") as f:
-                    for line in f:
-                        m = re.match(
-                            r"^TARGET_MACHINE\s*=\s*(?P<machine>\S+)\s*$",
-                            line
-                        )
-                        if not m:
-                            continue
-                        machine = m.group("machine")
-                    #end for
-                #end with
-            #end if
-
-            print("{} ({})".format(entry, machine))
+            print("{}{}".format(entry, "" if shell_found else " (defunct)"))
         #end for
+    #end function
+
+    @classmethod
+    def info(cls, target_name, **kwargs):
+        target_prefix = kwargs.get("target_prefix", Paths.target_prefix())
+
+        target_dir = os.path.normpath(os.path.join(target_prefix, target_name))
+        if not os.path.isdir(target_dir):
+            raise BuildBoxError("target '{}' not found.".format(target_name))
+
+        info_dict = {
+            "sysroot": target_dir
+        }
+
+        etc_target = os.path.join(target_dir, "etc", "target")
+        if not os.path.exists(etc_target):
+            raise BuildBoxError(
+                "target configuration not found at: {}".format(etc_target)
+            )
+
+        os_release = os.path.join(target_dir, "etc", "os-release")
+        if not os.path.exists(os_release):
+            raise BuildBoxError(
+                "release info not found at: {}".format(os_release)
+            )
+
+        for index, file_ in enumerate([etc_target, os_release]):
+            with open(file_, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    try:
+                        key, value = [k.strip(' "') for k in line.split("=")]
+
+                        key = key.lower()
+                        if index == 1:
+                            key = "os_" + key
+
+                        info_dict[key] = value
+                    except ValueError:
+                        continue
+
+        libc_name = os.path.join(
+            target_dir, "usr", "share", "misc", "libc.name"
+        )
+
+        with open(libc_name, "r", encoding="utf-8") as f:
+            info_dict["libc"] = f.read().strip()
+
+        key = kwargs.get("key")
+        if key:
+            try:
+                info_dict = { key: info_dict[key] }
+            except KeyError:
+                raise BuildBoxError("unknown key: {}".format(key))
+
+        if kwargs.get("format", "text") == "json":
+            print(json.dumps(info_dict, indent=4))
+        else:
+            if key:
+                print(info_dict[key])
+            else:
+                longest  = max(len(k) for k in info_dict.keys())
+                template = "{:>%d}: {}" % longest
+
+                for key, value in sorted(info_dict.items()):
+                    print(template.format(key, value))
+            #end if
+        #end if
     #end function
 
     @classmethod
