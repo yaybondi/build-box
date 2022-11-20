@@ -43,17 +43,13 @@ bbox_conf_t *bbox_config_new()
     }
 
     unsigned long uid = (unsigned long) getuid();
+    char *homedir = getenv("BUILD_BOX_HOME");
 
-    /*
-     * Always take the home directory from the password database, because it
-     * seems risky to let the user specify arbitrary locations in the `$HOME`
-     * environment variables.
-     */
-    char *homedir = NULL;
-
-    struct passwd *pwd = getpwuid(uid);
-    if(pwd)
-        homedir = pwd->pw_dir;
+    if(!homedir) {
+        struct passwd *pwd = getpwuid(uid);
+        if(pwd)
+            homedir = pwd->pw_dir;
+    }
 
     /*
      * Normalize the path to mitigate the risk of any hypothetical symlink
