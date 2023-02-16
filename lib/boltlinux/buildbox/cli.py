@@ -156,7 +156,7 @@ class BuildBoxCLI:
                 .format(release, arch)
             )
 
-        if len(args) != 2:
+        if len(args) < 2:
             usage()
             sys.exit(EXIT_ERROR)
 
