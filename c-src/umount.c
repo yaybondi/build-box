@@ -283,7 +283,7 @@ int bbox_umount(int argc, char * const argv[])
 
     bbox_conf_t *conf = bbox_config_new();
     if(!conf) {
-        bbox_perror("umount", "creating configuration context failed.");
+        bbox_perror("umount", "creating configuration context failed.\n");
         return BBOX_ERR_RUNTIME;
     }
 
