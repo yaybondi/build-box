@@ -23,8 +23,8 @@
 # THE SOFTWARE.
 #
 
-from boltlinux.archive.config.distroinfo import DistroInfo
-from boltlinux.archive.config.error import DistroInfoError
+from boltlinux.distro.config.distroinfo import DistroInfo
+from boltlinux.distro.config.error import DistroInfoError
 from boltlinux.buildbox.error import BuildBoxError
 
 class Distribution:
