@@ -62,6 +62,14 @@ _build_box_arg_complete() {
             )
             return
             ;;
+        '<libc>')
+            COMPREPLY=(
+                $(
+                    compgen -W "musl glibc" -- ${COMP_WORDS[COMP_CWORD]}
+                )
+            )
+            return
+            ;;
     esac
 
     local _word_counter=0
