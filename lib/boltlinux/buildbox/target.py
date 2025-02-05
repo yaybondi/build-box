@@ -93,7 +93,7 @@ class BuildBoxTarget:
             )
 
         try:
-            image_gen = BuildBoxGenerator(copy_qemu=True, **kwargs)
+            image_gen = BuildBoxGenerator(**kwargs)
             image_gen.prepare(target_dir, target_name)
 
             with Sysroot(target_dir):
