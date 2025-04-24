@@ -31,10 +31,10 @@ import shutil
 import signal
 import sys
 
-from boltlinux.buildbox.error import BuildBoxError
-from boltlinux.buildbox.generator import BuildBoxGenerator
-from boltlinux.buildbox.misc.paths import Paths
-from boltlinux.buildbox.sysroot import Sysroot
+from yaybondi.buildbox.error import BuildBoxError
+from yaybondi.buildbox.generator import BuildBoxGenerator
+from yaybondi.buildbox.misc.paths import Paths
+from yaybondi.buildbox.sysroot import Sysroot
 
 class BuildBoxTarget:
 

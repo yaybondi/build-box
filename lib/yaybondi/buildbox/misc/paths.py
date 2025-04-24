@@ -2,7 +2,7 @@
 #
 # The MIT License (MIT)
 #
-# Copyright (c) 2021 Tobias Koch <tobias.koch@gmail.com>
+# Copyright (c) 2019 Tobias Koch <tobias.koch@gmail.com>
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,43 +23,34 @@
 # THE SOFTWARE.
 #
 
-import logging
-import subprocess
-import sys
+import os
 
-from boltlinux.buildbox.error import BuildBoxError
-from boltlinux.osimage.sysroot import Sysroot as BaseSysroot
+from yaybondi.miscellaneous.userinfo import UserInfo
+from yaybondi.buildbox.error import BuildBoxError
 
-LOGGER = logging.getLogger(__name__)
+class Paths:
 
-class Sysroot(BaseSysroot):
-
-    def __init__(self, sysroot):
-        super().__init__(sysroot)
-
-    def __enter__(self):
-        cmd = [sys.argv[0], "mount", "-t", self.sysroot, "."]
-        for mountpoint in self.MOUNTPOINTS:
-            cmd.insert(2, "-m")
-            cmd.insert(3, mountpoint)
-
-        proc = subprocess.run(cmd)
-        if proc.returncode != 0:
-            raise BuildBoxError("failed to set up bind mounts.")
-
-        return self
+    @staticmethod
+    def homedir():
+        home = UserInfo.homedir()
+        if not home:
+            raise BuildBoxError("unable to determine user home directory.")
+        return home
     #end function
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.terminate_processes()
-        self.umount_all()
-        return False
+    @staticmethod
+    def cache_dir():
+        cache_dir = UserInfo.cache_dir()
+        if not cache_dir:
+            raise BuildBoxError("unable to determine cache directory.")
+        return cache_dir
     #end function
 
-    def umount_all(self):
-        proc = subprocess.run([sys.argv[0], "umount", "-t", self.sysroot, "."])
-        if proc.returncode != 0:
-            raise BuildBoxError("failed to release bind mounts.")
+    @staticmethod
+    def target_prefix():
+        return os.path.join(
+            "/var/lib/build-box/users", "{}".format(os.getuid()), "targets"
+        )
     #end function
 
 #end class

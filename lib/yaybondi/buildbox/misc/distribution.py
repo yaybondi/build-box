@@ -23,9 +23,9 @@
 # THE SOFTWARE.
 #
 
-from boltlinux.distro.config.distroinfo import DistroInfo
-from boltlinux.distro.config.error import DistroInfoError
-from boltlinux.buildbox.error import BuildBoxError
+from yaybondi.distro.config.distroinfo import DistroInfo
+from yaybondi.distro.config.error import DistroInfoError
+from yaybondi.buildbox.error import BuildBoxError
 
 class Distribution:
 

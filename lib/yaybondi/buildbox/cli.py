@@ -28,12 +28,12 @@ import sys
 import getopt
 import textwrap
 
-from boltlinux.buildbox.misc.distribution import Distribution
-from boltlinux.buildbox.misc.paths import Paths
-from boltlinux.buildbox.target import BuildBoxTarget
-from boltlinux.buildbox.error import BuildBoxError
-from boltlinux.miscellaneous.switch import switch
-from boltlinux.osimage.util import ImageGeneratorUtils
+from yaybondi.buildbox.misc.distribution import Distribution
+from yaybondi.buildbox.misc.paths import Paths
+from yaybondi.buildbox.target import BuildBoxTarget
+from yaybondi.buildbox.error import BuildBoxError
+from yaybondi.miscellaneous.switch import switch
+from yaybondi.osimage.util import ImageGeneratorUtils
 
 EXIT_OK = 0
 EXIT_ERROR = 1
@@ -82,7 +82,7 @@ class BuildBoxCLI:
             "force":
                 False,
             "repo_base":
-                "http://archive.boltlinux.org/dists",
+                "http://archive.yaybondi.com/dists",
             "verify":
                 True
         }
@@ -140,7 +140,7 @@ class BuildBoxCLI:
 
         if not Distribution.valid_release(release):
             raise BuildBoxError(
-                'release "{}" not found, run `bolt-distro-info refresh -r`.'
+                'release "{}" not found, run `bondi-distro-info refresh -r`.'
                 .format(release)
             )
 

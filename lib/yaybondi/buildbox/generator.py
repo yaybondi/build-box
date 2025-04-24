@@ -26,9 +26,9 @@
 import os
 import textwrap
 
-from boltlinux.buildbox.misc.paths import Paths
-from boltlinux.osimage.generator import ImageGenerator
-from boltlinux.osimage.util import ImageGeneratorUtils
+from yaybondi.buildbox.misc.paths import Paths
+from yaybondi.osimage.generator import ImageGenerator
+from yaybondi.osimage.util import ImageGeneratorUtils
 
 class BuildBoxGenerator(ImageGenerator):
 
@@ -73,7 +73,7 @@ class BuildBoxGenerator(ImageGenerator):
             f.write("option cache_dir /.pkg-cache\n")
 
         package_cache = os.path.join(
-            Paths.cache_dir(), "bolt", "pkg-cache", self._release, self._arch,
+            Paths.cache_dir(), "bondi", "pkg-cache", self._release, self._arch,
                 self._libc
         )
 

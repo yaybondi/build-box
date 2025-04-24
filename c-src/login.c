@@ -199,7 +199,7 @@ int bbox_login(int argc, char * const argv[])
 
     /*
      * We clean out most of the environment except for variables starting with
-     * BOLT_ and a few select, such as CFLAGS. Then we log into the target and
+     * BONDI_ and a few select, such as CFLAGS. Then we log into the target and
      * change into the home directory.
      */
     bbox_sanitize_environment();
