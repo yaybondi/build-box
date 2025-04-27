@@ -32,7 +32,7 @@ class Distribution:
     @staticmethod
     def valid_release(name):
         try:
-            return name in DistroInfo().list(supported=True)
+            return name in DistroInfo().list(unstable=True)
         except DistroInfoError as e:
             BuildBoxError(str(e))
     #end function
@@ -40,7 +40,7 @@ class Distribution:
     @staticmethod
     def latest_release():
         try:
-            return list(DistroInfo().list(supported=True).keys())[-1]
+            return list(DistroInfo().list(unstable=True).keys())[-1]
         except DistroInfoError as e:
             raise BuildBoxError(str(e))
     #end function
