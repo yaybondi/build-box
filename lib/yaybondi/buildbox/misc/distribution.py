@@ -40,7 +40,10 @@ class Distribution:
     @staticmethod
     def latest_release():
         try:
-            return list(DistroInfo().list(unstable=True).keys())[-1]
+            releases = list(DistroInfo().list(unstable=True).keys())
+            if len(releases) > 1:
+                return releases[1]
+            return releases[0]
         except DistroInfoError as e:
             raise BuildBoxError(str(e))
     #end function
