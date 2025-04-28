@@ -32,7 +32,13 @@ class Distribution:
     @staticmethod
     def valid_release(name):
         try:
-            return name in DistroInfo().list(unstable=True)
+            releases = list(
+                map(
+                    lambda x: x["version_codename"],
+                        DistroInfo().list(unstable=True)
+                )
+            )
+            return name in releases
         except DistroInfoError as e:
             BuildBoxError(str(e))
     #end function
@@ -40,7 +46,12 @@ class Distribution:
     @staticmethod
     def latest_release():
         try:
-            releases = list(DistroInfo().list(unstable=True).keys())
+            releases = list(
+                map(
+                    lambda x: x["version_codename"],
+                        DistroInfo().list(unstable=True)
+                )
+            )
             if len(releases) > 1:
                 return releases[1]
             return releases[0]
